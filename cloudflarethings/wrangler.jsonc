@@ -9,7 +9,7 @@
 	"compatibility_date": "2025-09-27",
 	"observability": {
 		"enabled": true
-	}
+	},
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
@@ -34,7 +34,16 @@
 	 * Static Assets
 	 * https://developers.cloudflare.com/workers/static-assets/binding/
 	 */
-	// "assets": { "directory": "./public/", "binding": "ASSETS" }
+	"assets": { "directory": "./public/", "binding": "ASSETS" },
+	
+	/* D1 database bindings - add the database you created in the Cloudflare dashboard.
+	   Replace database_name with the D1 database name or UUID as needed. */
+	"d1_databases": [
+		{
+			"binding": "dse_trend",
+			"database_id": "597f8fb0-49c8-4808-98dc-d52daedc96d2"
+		}
+	],
 	/**
 	 * Service Bindings (communicate between multiple Workers)
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
