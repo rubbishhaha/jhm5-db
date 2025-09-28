@@ -1,177 +1,184 @@
-<!DOCTYPE html>                                                                                                     <!-- HTML5 文檔類型聲明：告訴瀏覽器這是現代HTML文檔 -->
-<html lang="zh-TW">                                                                                                 <!-- HTML 根元素：設定文檔語言為繁體中文，提升無障礙性 -->
+<!DOCTYPE html>
+<html lang="zh-TW">
 
-<!-- ====================================================================================================
-     📋 文檔元數據 DOCUMENT METADATA
-     ====================================================================================================-->
-
-<head>                                                                                                              <!-- 文檔頭部開始：包含頁面的元資訊 -->
-    <meta charset="UTF-8">                                                                                          <!-- 字符編碼設定：使用 UTF-8 支援中文和國際字符 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">                                          <!-- 視窗設定：適應各種裝置螢幕尺寸，啟用響應式設計 -->
-    
-    <!-- 頁面資訊 -->
-    <title>​應⽤程式開發</title>                                                                                       <!-- 瀏覽器標籤頁標題：SEO 重要元素，也是書籤時的預設名稱 -->
-    
-    <!-- ====================================================================================================
-         🎨 樣式表定義 STYLESHEET DEFINITIONS
-         ====================================================================================================-->
-    
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>DSE 搜尋趨勢分析</title>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* ====================================================================================================
-           🌐 全域基礎樣式 GLOBAL BASE STYLES
-           ====================================================================================================*/
-        
-        * {                                                                                                         /* 萬用選擇器：重置所有元素的基本樣式 */
-            margin: 0;                                                                                              /* 移除預設邊距 */
-            padding: 0;                                                                                             /* 移除預設內邊距 */
-            box-sizing: border-box;                                                                                 /* 包含邊框和內邊距在寬高計算內 */
-        }
-        
-        body {                                                                                                      /* 頁面主體樣式：定義整體佈局和背景 */
-            font-family: 'Microsoft JhengHei', 'PingFang TC', 'Noto Sans TC', 'Helvetica Neue', Arial, sans-serif;  /* 設定中文字體優先順序 */
-            min-height: 100vh;                                                                                      /* 最小高度為視窗高度 */
-            background: linear-gradient(135deg, #E0F7FA 0%, #B2DFDB 100%);                                      /* 藍漸層背景 */
-            padding: 20px;                                                                                          /* 頁面內邊距 */
+        /* ---------- Reset & base ---------- */
+        * { box-sizing: border-box; }
+        html,body { height: 100%; }
+        body {
+            margin: 0;
+            font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg,#E0F7FA 0%,#B2DFDB 100%);
+            padding: 24px;
+            color: #123;
         }
 
-        /* ====================================================================================================
-           📦 主要容器 MAIN CONTAINERS
-           ====================================================================================================*/
-        
-        .container {                                                                                                /* 主要容器：包含整個頁面內容 */
-            max-width: 1200px;                                                                                      /* 最大寬度限制 */
-            margin: 0 auto;                                                                                         /* 水平置中 */
+        /* ---------- Layout ---------- */
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        .header {                                                                                                   /* 頁面標題區域 */
-            text-align: center;                                                                                     /* 文字置中 */
-            margin-bottom: 40px;                                                                                    /* 下邊距40px */
+        .header { text-align: center; margin-bottom: 18px; }
+        .main-title { color: #00838F; font-size: 2rem; margin: 0; }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
         }
 
-        /* ====================================================================================================
-           ✍️ 文字排版 TYPOGRAPHY
-           ====================================================================================================*/
-        
-        .main-title {                                                                                               /* 主標題樣式 */
-            color: #00838F;                                                                                       /* 深藍文字顏色 */
-            font-size: 3em;                                                                                         /* 字體大小3倍 */
-            font-weight: bold;                                                                                      /* 粗體字 */
-            margin-bottom: 15px;                                                                                    /* 下邊距15px */
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);                                                          /* 文字陰影 */
+        .box {
+            background: #fff;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
         }
 
-        .subtitle {                                                                                                 /* 副標題樣式 */
-            color: #00695C;                                                                                       /* 深綠藍文字顏色 */
-            font-size: 1.2em;                                                                                       /* 字體大小1.2倍 */
-            margin-bottom: 10px;                                                                                    /* 下邊距10px */
+        .text-box { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
+        /* 固定圖表容器高度，並讓 canvas 充滿這個容器，避免無限向下擴展 */
+        .chart-box { height: 360px; position: relative; overflow: hidden; }
+        .chart-box canvas {
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
         }
 
-        /* ====================================================================================================
-           🎯 作業卡片網格 ASSIGNMENT CARD GRID
-           ====================================================================================================*/
-        
-        .assignments-grid {                                                                                         /* 作業卡片網格容器 */
-            display: grid;                                                                                          /* 網格佈局 */
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));                                            /* 響應式網格列 */
-            gap: 30px;                                                                                              /* 網格間距30px */
-            padding: 20px 0;                                                                                        /* 上下內邊距20px */
+        h2 { margin: 0 0 12px 0; font-size: 1.1rem; color: #264653; border-bottom: 1px solid #eef; padding-bottom: 8px; }
+
+        @media (max-width: 820px) {
+            .container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <header class="header">
+            <h1 class="main-title">DSE 搜尋趨勢分析</h1>
+        </header>
+
+        <main class="container">
+            <section class="box text-box" aria-labelledby="readme-heading">
+                <h2 id="readme-heading">README 內容</h2>
+                <div id="readme-content">載入中…</div>
+            </section>
+
+            <section class="box chart-box" aria-labelledby="chart-heading">
+                <h2 id="chart-heading">DSE 搜尋趨勢圖</h2>
+                <canvas id="trendChart" role="img" aria-label="DSE 搜尋趨勢圖"></canvas>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // 將字串安全地轉成 HTML（簡單換行處理）
+        function renderMarkdownLike(text) {
+            // 最小處理：換行轉 <br>，保留 Markdown 標題粗體樣式的可讀性
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                                 .replace(/^### (.*$)/gm, '<strong>$1</strong>')
+                                 .replace(/^## (.*$)/gm, '<strong style="font-size:1.05em">$1</strong>')
+                                 .replace(/\n/g, '<br>');
         }
 
-        .assignment-card {                                                                                          /* 作業卡片樣式 */
-            background: white;                                                                                    /* 白色背景 */
-            border-radius: 20px;                                                                                    /* 圓角20px */
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);                                                          /* 陰影效果 */
-            border: 3px solid #4DB6AC;                                                                            /* 藍邊框 */
-            overflow: hidden;                                                                                       /* 隱藏超出範圍的內容 */
-            transition: all 0.3s ease;                                                                              /* 所有屬性0.3秒平滑過渡 */
-            cursor: pointer;                                                                                        /* 滑鼠游標為手指 */
-        }
+        // 先嘗試 fetch README.md，失敗時使用內嵌 fallback
+        const readmeFallback = `# jhm5-db\n\n分析這個DSE搜尋趨勢數據，我可以觀察到以下幾個明顯的模式和趨勢：\n\n## 季節性趨勢\n\n**年度高峰期（4-5月）**：\n- 每年4月中到5月初出現明顯高峰\n- 峰值：2020年(76), 2021年(72), 2022年(78), 2023年(87), 2024年(96), 2025年(100)\n- 這對應香港中學文憑考試(DSE)的主要考試期\n\n**次要高峰期（7月）**：\n- 每年7月中出現次高峰\n\n**低谷期**：\n- 每年5月底到6月、12月到1月初搜尋量較低`;
 
-        .assignment-card:hover {                                                                                    /* 卡片懸停效果 */
-            transform: translateY(-10px);                                                                           /* 向上移動10px */
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);                                                           /* 加深陰影效果 */
-            border-color: #00ACC1;                                                                                /* 邊框變亮藍 */
-        }
-
-        .card-preview {                                                                                             /* 卡片預覽區域 */
-            height: 200px;                                                                                          /* 固定高度200px */
-            background: linear-gradient(135deg, #E0F2F1, #B2DFDB);                                              /* 漸層背景 */
-            display: flex;                                                                                          /* 彈性盒子佈局 */
-            align-items: center;                                                                                    /* 垂直置中 */
-            justify-content: center;                                                                                /* 水平置中 */
-            position: relative;                                                                                     /* 相對定位 */
-            overflow: hidden;                                                                                       /* 隱藏超出的內容 */
-        }
-
-        .preview-icon {                                                                                             /* 預覽圖示 */
-            font-size: 4em;                                                                                         /* 字體大小4倍 */
-            opacity: 0.7;                                                                                           /* 透明度70% */
-        }
-
-        .card-content {                                                                                             /* 卡片內容區域 */
-            padding: 25px;                                                                                          /* 內邊距25px */
-        }
-
-        .assignment-number {                                                                                        /* 作業編號 */
-            display: inline-block;                                                                                  /* 行內塊級元素 */
-            background: linear-gradient(45deg, #26A69A, #4DB6AC);                                               /* 藍漸層背景 */
-            color: white;                                                                                         /* 白色文字 */
-            padding: 5px 15px;                                                                                      /* 內邊距上下5px，左右15px */
-            border-radius: 20px;                                                                                    /* 圓角20px */
-            font-weight: bold;                                                                                      /* 粗體字 */
-            font-size: 0.9em;                                                                                       /* 字體大小0.9倍 */
-            margin-bottom: 15px;                                                                                    /* 下邊距15px */
-        }
-
-        .assignment-title {                                                                                         /* 作業標題 */
-            font-size: 1.5em;                                                                                       /* 字體大小1.5倍 */
-            font-weight: bold;                                                                                      /* 粗體字 */
-            color: #00838F;                                                                                       /* 深藍文字顏色 */
-            margin-bottom: 15px;                                                                                    /* 下邊距15px */
-        }
-
-        .assignment-description {                                                                                   /* 作業描述 */
-            color: #555;                                                                                          /* 深灰色文字 */
-            line-height: 1.6;                                                                                       /* 行高1.6倍 */
-            font-size: 1em;                                                                                         /* 標準字體大小 */
-        }
-
-        .learn-topics {                                                                                             /* 學習主題列表 */
-            margin-top: 15px;                                                                                       /* 上邊距15px */
-        }
-
-        .topic-tag {                                                                                                /* 主題標籤 */
-            display: inline-block;                                                                                  /* 行內塊級元素 */
-            background: #E0F7FA;                                                                                  /* 淡藍背景 */
-            color: #00695C;                                                                                       /* 深綠藍文字 */
-            padding: 4px 12px;                                                                                      /* 內邊距上下4px，左右12px */
-            border-radius: 15px;                                                                                    /* 圓角15px */
-            font-size: 0.85em;                                                                                      /* 字體大小0.85倍 */
-            margin: 3px 5px 3px 0;                                                                                  /* 外邊距設定 */
-            border: 1px solid #4DB6AC;                                                                            /* 淡藍邊框 */
-        }
-
-        /* ====================================================================================================
-           📱 響應式設計 RESPONSIVE DESIGN
-           ====================================================================================================*/
-        
-        @media (max-width: 768px) {                                                                                 /* 平板及手機螢幕適配 */
-            .container {                                                                                            /* 小螢幕容器調整 */
-                padding: 10px;                                                                                      /* 減少內邊距 */
-            }
-            
-            .main-title {                                                                                           /* 小螢幕主標題調整 */
-                font-size: 2.2em;                                                                                   /* 縮小字體 */
-            }
-            
-            .assignments-grid {                                                                                     /* 小螢幕網格調整 */
-                grid-template-columns: 1fr;                                                                         /* 單列顯示 */
-                gap: 20px;                                                                                          /* 減少間距 */
-            }
-            
-            .assignment-card {                                                                                      /* 小螢幕卡片調整 */
-                margin: 0 10px;                                                                                     /* 左右外邊距 */
+        async function loadReadme() {
+            try {
+                const r = await fetch('README.md');
+                if (!r.ok) throw new Error('fetch failed');
+                const t = await r.text();
+                document.getElementById('readme-content').innerHTML = renderMarkdownLike(t);
+            } catch (err) {
+                // 如果透過 file:// 開啟會失敗，使用 fallback
+                document.getElementById('readme-content').innerHTML = renderMarkdownLike(readmeFallback);
+                console.warn('無法載入 README.md，使用 fallback 範本。', err);
             }
         }
-    </style>                                                                                                        <!-- 結束CSS樣式區塊 -->
-</head>     
+
+        // 解析 CSV（簡單版）
+        function parseCsv(text) {
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            // 找到 header 行的索引（含 Week）
+            const headerIndex = lines.findIndex(l => /Week/i.test(l) || /Week,/.test(l));
+            const dataLines = headerIndex >= 0 ? lines.slice(headerIndex + 1) : lines;
+            const rows = [];
+            for (const line of dataLines) {
+                if (!line.includes(',')) continue;
+                const [date, val] = line.split(',').map(s => s.trim());
+                const n = Number(val);
+                if (!date || Number.isNaN(n)) continue;
+                rows.push({ date, value: n });
+            }
+            return rows;
+        }
+
+        async function loadCsvAndRender() {
+            // fallback 小樣本（來自 DSE.csv 開頭）
+            const csvFallback = `Category: All categories\n\nWeek,DSE: (Hong Kong)\n2020-04-12,33\n2020-04-19,58\n2020-04-26,76\n2020-05-03,38\n2020-05-10,32\n2020-05-17,29\n2020-05-24,14`;
+
+            let csvText = csvFallback;
+            try {
+                const r = await fetch('DSE.csv');
+                if (!r.ok) throw new Error('fetch failed');
+                csvText = await r.text();
+            } catch (err) {
+                console.warn('無法載入 DSE.csv，使用 fallback 資料片段。', err);
+            }
+
+            const rows = parseCsv(csvText);
+            if (rows.length === 0) {
+                document.getElementById('trendChart').insertAdjacentText('afterend','<p>找不到可用的 CSV 數據。</p>');
+                return;
+            }
+
+            const labels = rows.map(r => r.date);
+            const values = rows.map(r => r.value);
+
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            // 銷毀已存在的圖表（若有）
+            if (window._trendChartInstance) window._trendChartInstance.destroy();
+
+            window._trendChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'DSE 搜尋趨勢',
+                        data: values,
+                        borderColor: 'rgba(38, 166, 154, 0.9)',
+                        backgroundColor: 'rgba(38,166,154,0.12)',
+                        tension: 0.2,
+                        pointRadius: 3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        x: { display: true, title: { display: true, text: '日期' } },
+                        y: { display: true, title: { display: true, text: '搜尋量' }, beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        // 啟動
+        loadReadme();
+        loadCsvAndRender();
+    </script>
+</body>
+</html>
