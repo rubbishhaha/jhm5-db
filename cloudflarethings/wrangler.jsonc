@@ -41,6 +41,7 @@
 	"d1_databases": [
 		{
 			"binding": "dse_trend",
+			"database_name": "dse_trend",
 			"database_id": "597f8fb0-49c8-4808-98dc-d52daedc96d2"
 		}
 	],

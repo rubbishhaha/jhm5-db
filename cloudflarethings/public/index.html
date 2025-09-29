@@ -98,7 +98,7 @@
                 const t = await r.text();
                 document.getElementById('readme-content').innerHTML = renderMarkdownLike(t);
             } catch (err) {
-                // 如果透過 file:// 開啟會失敗，使用 fallback
+                //如果透過 file:// 開啟會失敗，使用 fallback
                 document.getElementById('readme-content').innerHTML = renderMarkdownLike(readmeFallback);
                 console.warn('無法載入 README.md，使用 fallback 範本。', err);
             }
