@@ -1,186 +1,159 @@
 # 任務清單 — 在 Cloudflare Workers 上建立儲存 DSE.csv 與對話資料的資料庫
 
 本文件列出逐步作法（含命令與範例程式片段），讓你可以使用 Cloudflare Workers 搭配 D1（關聯資料庫）、R2（物件存儲）與 Workers KV / Durable Objects（視情境）來儲存與提供 DSE.csv 與對話資料。
+# 任務清單 — 前端改造：讓網站更吸睛（取代舊的 task.md）
 
-設計建議（簡短）
-- 對於原始檔案（例如完整的 `DSE.csv`）建議放到 R2（物件存儲），便於上傳/下載與版本控制。
-- 若要對 CSV 做查詢、統計或儲存結構化紀錄，建議把解析後的資料寫入 D1（SQL）。
-- 對話（聊天紀錄）可放在 D1（如果需要 SQL 查詢）或放到 Workers KV / Durable Objects（低延遲、簡單 key-value 存取）。
+目標：把目前的網站（public/）改成更吸引人的介面。重點有三項：
 
-前置條件
-- 已有 Cloudflare 帳號與權限（可建立 Worker、D1、R2）。
-- 已安裝 node/npm 與 Cloudflare 的 CLI（wrangler / 官方 create 指令）。
+1) 修正並擴充 DSE 趨勢圖：確保圖表載入並顯示全部時間範圍（不是只顯示 2020-04-12 ~ 2020-05-24），並加入時間區間篩選（動態圖表）。
+2) 新增一個卡片（box），標題 "DSE Past Paper"，點擊會導到 `public/past-papers.html`，卡片風格與現有一致並含可愛文件圖示。
+3) 增加打字機式文字動畫：頁面載入時顯示逐字打字動畫，游標為灰色直線，速度每 5 個字隨機變動（20~30 字/秒），完成後游標閃爍。
 
-快速安裝（如果尚未安裝）
-```bash
-# 建議使用官方的新專案建立工具
-npm create cloudflare@latest
-# 或傳統安裝 wrangler（若需要全域）
-npm install -g wrangler
-# 登入 Cloudflare
-wrangler login
-```
+要修改 / 新增的檔案
+- `public/index.html` — 主頁：新增 chart 容器、篩選 UI、卡片、typing 容器與腳本
+- `public/styles.css` — 共用 CSS（若不存在，可把 CSS 內嵌在 index.html）
+- `public/past-papers.html` — 新增的目的頁
+- （必要時）`src/index.ts` — 確認或新增可以讓前端以 POST `/api/sql` 取得完整 dse_trends 的 endpoint（現有專案已有 /api/sql 的實作，請確認回傳結構）
 
-任務步驟（分成準備、資源建立、開發、測試與部署）
+具體實作說明（步驟與範例程式）
 
-1) 建立專案骨架
-- 在專案目錄（例如 /workspaces/jhm5-db）建立 Worker 專案：
-```bash
-# 若使用 create cloudflare
-npm create cloudflare@latest -- --name jhm5-db
-# 或用 wrangler 快速建立
-wrangler init jhm5-db
-```
-- 會產生 `wrangler.toml`、`src/` 或 `workers/` 程式碼位置。
+A. Chart（完整資料與動態篩選）
+- 目的：用 Chart.js（CDN）顯示 time series，且提供 dropdown 篩選（All / 1y / 6m / 3m / 1m）。
+- 主要修改：在 `public/index.html` <head> 加入 Chart.js 與 dayjs/adaptor，body 加入 `<canvas id="dseChart"></canvas>` 與 `<select id="rangeSelect">`。
 
-2) 建立 D1（關聯資料庫）
-- 可在 Cloudflare Dashboard 建立 D1 資料庫，或使用 wrangler CLI：
-```bash
-wrangler d1 create jhm5_db
-```
-- 建立資料表（migration）：
-  - 建議建立兩個 table：`dse_trends`、`dialogues`
-  - sample SQL migration:
-```sql
--- migrations/001_create_tables.sql
-CREATE TABLE IF NOT EXISTS dse_trends (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  date TEXT NOT NULL,
-  value INTEGER NOT NULL,
-  source TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS dialogues (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  session_id TEXT,
-  role TEXT,
-  message TEXT,
-  metadata JSON,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-- 使用 wrangler 或 dashboard 執行 migration（或在 worker 啟動時檢查並建立）。
-
-3) 建立 R2 bucket（存放原始 CSV 等檔案）
-- 在 Dashboard 建立 R2，也可以用 wrangler：
-```bash
-wrangler r2 bucket create jhm5-csv-bucket
-```
-- 在 `wrangler.toml` 加上 R2 binding：
-```toml
-[[r2_buckets]]
-binding = "JHM5_R2"
-bucket_name = "jhm5-csv-bucket"
-preview_bucket_name = "jhm5-csv-bucket"
-```
-
-4) 設定 wrangler.toml 的 D1 與其他 binding
-- 範例片段：
-```toml
-name = "jhm5-db"
-main = "./src/index.js"
-compatibility_date = "2025-01-01"
-
-[[d1_databases]]
-binding = "JHM5_D1"
-database_name = "jhm5_db"
-```
-- 若使用 KV / Durable Objects，同樣在 `wrangler.toml` 中加上 bindings。
-
-5) 撰寫 Worker API（範例端點）
-- 功能建議：
-  - POST /upload-csv -> 接收 CSV 上傳，把檔案存 R2，並觸發解析寫入 D1（或回傳 job id）
-  - GET /csv/:name -> 從 R2 下載原始 CSV
-  - POST /dialogue -> 儲存一條對話紀錄到 D1
-  - GET /dialogue?session_id=... -> 取得會話歷史
-
-- 範例（Node-like / Workers JS）:
+範例程式片段（請放在 index.html 底部或獨立 JS 檔）：
 ```js
-export async function onRequestPostUpload({ request, env }) {
-  const form = await request.formData();
-  const file = form.get('file'); // File object
-  const key = `dse/${Date.now()}-${file.name}`;
-  // 儲存到 R2
-  await env.JHM5_R2.put(key, await file.arrayBuffer(), { httpMetadata: { contentType: file.type } });
-  // 可回傳 key 或觸發解析作業
-  return new Response(JSON.stringify({ key }), { status: 200 });
+async function fetchDseData() {
+  const res = await fetch('/api/sql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query: 'SELECT date, value FROM dse_trends ORDER BY date ASC' })
+  });
+  const j = await res.json();
+  // adapt to response shape
+  return j.rows || j.results || j; 
 }
 
-// 將解析後的紀錄寫入 D1（示意）
-async function writeRowsToD1(env, rows) {
-  // rows = [{date: '2020-04-12', value: 33}, ...]
-  const db = env.JHM5_D1;
-  const tx = await db.prepare('BEGIN').run();
-  try {
-    for (const r of rows) {
-      await db.prepare('INSERT INTO dse_trends (date, value, source) VALUES (?, ?, ?)')
-              .bind(r.date, r.value, 'r2-upload')
-              .run();
-    }
-    await db.prepare('COMMIT').run();
-  } catch (e) {
-    await db.prepare('ROLLBACK').run();
-    throw e;
-  }
+function toChartData(rows) {
+  return { labels: rows.map(r => r.date), data: rows.map(r => Number(r.value)) };
 }
-```
 
-6) CSV 解析策略
-- 可在 Worker 中解析（小檔案）或由後端任務/Queue 處理（若檔案很大）
-- 建議：
-  - 先把原始 CSV 放到 R2
-  - Worker 建立一個 job row（或直接同步）解析 R2 的內容，分批寫入 D1
-- CSV 解析示例（簡單）：
-```js
-function parseCsv(text) {
-  return text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).slice(2).map(line=>{
-    const [date,val] = line.split(','); return {date, value: Number(val)};
+function applyRangeFilter(rows, rangeKey) {
+  if (!rows || rows.length === 0) return rows;
+  if (rangeKey === 'all') return rows;
+  const end = new Date(rows[rows.length-1].date);
+  const start = new Date(end);
+  if (rangeKey === '1y') start.setFullYear(end.getFullYear()-1);
+  if (rangeKey === '6m') start.setMonth(end.getMonth()-6);
+  if (rangeKey === '3m') start.setMonth(end.getMonth()-3);
+  if (rangeKey === '1m') start.setMonth(end.getMonth()-1);
+  return rows.filter(r => new Date(r.date) >= start && new Date(r.date) <= end);
+}
+
+let chartInstance = null;
+async function initChart() {
+  const rows = await fetchDseData();
+  const ctx = document.getElementById('dseChart').getContext('2d');
+  const cdata = toChartData(rows);
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels: cdata.labels, datasets: [{ label: 'DSE Trend', data: cdata.data, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.15)', tension: 0.2 }] },
+    options: { scales: { x: { type: 'time', time: { parser: 'yyyy-MM-dd', unit: 'month' } } }, plugins: { legend: { display: false } } }
+  });
+
+  document.getElementById('rangeSelect').addEventListener('change', (e) => {
+    const filtered = applyRangeFilter(rows, e.target.value);
+    const d = toChartData(filtered);
+    chartInstance.data.labels = d.labels;
+    chartInstance.data.datasets[0].data = d.data;
+    chartInstance.update();
   });
 }
+
+document.addEventListener('DOMContentLoaded', () => initChart().catch(console.error));
 ```
 
-7) 驗證與本地開發
-- 使用 `wrangler dev` 於本機測試：
+注意：若 Chart 時間軸解析有問題，可改成用 category x 軸 或引入 dayjs/date-fns adaptor（CDN 可載入）。
+
+B. 新增 "DSE Past Paper" 卡片並導向新頁面
+- 在 index.html 合適位置新增以下 HTML（或使用現有卡片樣式）：
+```html
+<a href="/past-papers.html" class="card-link">
+  <div class="card">
+    <div class="card-icon">📄</div>
+    <div class="card-body"><h3>DSE Past Paper</h3><p>歷屆試題與資源</p></div>
+  </div>
+</a>
+```
+- 共用 CSS 範例（放 `public/styles.css`）：
+```css
+.card { display:flex; gap:12px; align-items:center; padding:16px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.08); background:#fff; transition:transform .14s; }
+.card:hover{ transform: translateY(-4px); box-shadow:0 12px 30px rgba(0,0,0,0.12); }
+.card-icon{ font-size:28px; padding:8px; background:#f3f4f6; border-radius:8px; }
+```
+- 新增 `public/past-papers.html`（基本骨架即可）：
+```html
+<!doctype html>
+<html><head><meta charset="utf-8"><title>DSE Past Paper</title><link rel="stylesheet" href="/styles.css"></head>
+<body>
+  <h1>DSE Past Paper</h1>
+  <p>此頁為佔位，後續可由 R2 列出檔案或加入下載連結。</p>
+  <a href="/">回首頁</a>
+</body></html>
+```
+
+C. 打字機式文字動畫（typing effect）
+- HTML：在 index.html 放置一個容器，例如 `<div id="heroTyping"></div>`。
+- CSS：游標樣式與閃爍動畫。
+- JS：逐字插入，隨機每 5 字變化速率（20~30 字/秒），完成後游標改為閃爍。
+
+範例 JS（放 index.html 底部）：
+```js
+function typingEffect(containerSelector, text) {
+  const container = document.querySelector(containerSelector);
+  container.textContent = '';
+  const cursor = document.createElement('span'); cursor.className = 'typing-cursor'; cursor.textContent = '|'; container.appendChild(cursor);
+  const chars = Array.from(text);
+  let i = 0, ticks = 0, speed = randSpeed();
+  function randSpeed(){ return 20 + Math.floor(Math.random()*11); }
+  function nextTick(){
+    if (i >= chars.length) { cursor.classList.add('blink'); return; }
+    const charNode = document.createTextNode(chars[i]); container.insertBefore(charNode, cursor); i++; ticks++;
+    if (ticks % 5 === 0) speed = randSpeed();
+    const delay = 1000 / speed; setTimeout(nextTick, delay);
+  }
+  nextTick();
+}
+
+/* CSS: .typing-cursor { color:#9ca3af; margin-left:2px } .typing-cursor.blink { animation: blink 1s steps(2,start) infinite } @keyframes blink { to { visibility: hidden } } */
+
+document.addEventListener('DOMContentLoaded', () => typingEffect('#heroTyping', '歡迎來到 DSE 趨勢分析平台，這裡會展示完整的 DSE 搜尋趨勢走勢圖與相關資源。'));
+```
+
+可選/加強項
+- 把 Chart 的資料載入改為 lazy load（只在視窗中才載入）。
+- Past Papers 使用 R2 + presigned URLs 顯示檔案列表。
+- 打字機支援多段文字輪替（carousel）。
+
+啟動與測試（本地）
+1. 進入 cloudflarethings 專案並啟動 dev server：
 ```bash
-wrangler dev --local src/index.js
-```
-- 範例 curl 測試：
-```bash
-# 上傳 csv
-curl -X POST -F "file=@DSE.csv" http://127.0.0.1:8787/upload-csv
-
-# 儲存對話
-curl -X POST -H "Content-Type: application/json" \
-  -d '{"session_id":"s1","role":"user","message":"hello"}' \
-  http://127.0.0.1:8787/dialogue
+cd /workspaces/jhm5-db/cloudflarethings
+npm install
+npm run dev   # 或使用 wrangler dev
 ```
 
+2. 在瀏覽器開啟 http://127.0.0.1:8787
+- 檢查 chart 是否載入完整資料：若只看到少數點，請打開 DevTools 的 Network/Console，檢查 `/api/sql` 的回傳 JSON 結構，並依回傳格式調整 `fetchDseData()`。
+- 檢查 range select 是否能做 filter
+- 點擊 DSE Past Paper 卡片是否可跳轉至 `/past-papers.html`
+- 觀察打字動畫（speed 隨機、完成後游標閃爍）
+
+要我現在做哪一件事？（擇一）
+1) 我直接修改 repo：變更 `public/index.html`、新增 `public/past-papers.html`、新增/修改 `public/styles.css`，並在本機啟動測試；
+2) 我只產生完整的 patch / code snippets（你手動套用）；
+3) 我先幫你把 Chart 的 fetch 與 typing script 寫到檔案裡，但保留 UI 樣式由你調整。
+
+回覆你要的選項，我就開始動手（我建議選 1，這樣我可以直接實作並在本地驗證）。
 8) 部署
-- 使用 `wrangler publish` 部署到 Cloudflare：
-```bash
-wrangler publish
-```
-- 建議先在 staging zone / preview 測試，再到 production。
-
-9) 權限、API Token 與安全性
-- 建議建立有限權限的 API token（只允許管理 Worker / D1 / R2 所需的 scope）並儲存在 CI 的 secrets 或 `wrangler secret put`。
-- 如果公開 API，請加上驗證（JWT、API key、Cloudflare Access 或其他方式）。
-
-10) 監控、維護與備份
-- R2 裡的原始 CSV 可定期備份（下載或透過 replication 流程）。
-- D1 的重要資料可定期匯出備份。
-- 加入基本的 logging（Workers 上的 console / 轉送到 log sink）。
-
-可選進階項目（後續可實作）
-- 增加時間序列查詢 API（aggregate、rolling average 等）。
-- 使用 Durable Objects 實作即時會話或鎖定機制。
-- 加上 Cloudflare Queues（若解析需背景作業）。
-- 在 Worker 中加入 pagination 與 index（SQL 上的索引）。
-
----
-
-建議下一步（擇一）
-- 如果你想我直接幫你：我可以產生一個最小可跑的 Worker 範例（`src/index.js`）和更新 `wrangler.toml` 的範本，並加入 D1 migration SQL 檔與一個上傳 endpoint 的實作。
-- 或者你先嘗試上述步驟並告訴我哪一步卡住（我會逐項協助）。
 

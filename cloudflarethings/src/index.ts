@@ -78,6 +78,40 @@ export default {
         return new Response(JSON.stringify({ rows: res.results || [] }), { headers: { 'content-type': 'application/json' } });
       }
 
+      // POST /api/admin/cleanup -> administrative cleanup: list duplicate dates, remove duplicate rows (keep MIN(id)), create unique index
+      if (path === '/api/admin/cleanup' && request.method === 'POST') {
+        // NOTE: this endpoint performs destructive cleanup. Intended for local/dev usage.
+        // 1) list duplicate dates
+        const dupRes = await env.dse_trend.prepare('SELECT date, COUNT(*) AS cnt FROM dse_trends GROUP BY date HAVING cnt > 1').all();
+        const duplicates = dupRes.results || [];
+
+        // counts before
+        const beforeRes = await env.dse_trend.prepare('SELECT COUNT(*) AS cnt FROM dse_trends').all();
+        const before = (beforeRes.results && beforeRes.results[0] && (beforeRes.results[0].cnt || beforeRes.results[0].CNT || beforeRes.results[0].count)) || 0;
+
+        // remove duplicates: keep the row with the smallest id per date
+        // Note: Cloudflare D1 disallows explicit BEGIN/COMMIT SQL; perform as single statements.
+        // Use a safe DELETE with a derived-table subquery to avoid SQLite limitations when deleting from same table.
+        try {
+          await env.dse_trend.prepare(`DELETE FROM dse_trends WHERE id NOT IN (
+            SELECT min_id FROM (
+              SELECT MIN(id) AS min_id FROM dse_trends GROUP BY date
+            )
+          )`).run();
+        } catch (e) {
+          // propagate error
+          throw e;
+        }
+
+        // create unique index on date to prevent future duplicates
+        await env.dse_trend.prepare('CREATE UNIQUE INDEX IF NOT EXISTS idx_dse_trends_date ON dse_trends(date)').run();
+
+        const afterRes = await env.dse_trend.prepare('SELECT COUNT(*) AS cnt FROM dse_trends').all();
+        const after = (afterRes.results && afterRes.results[0] && (afterRes.results[0].cnt || afterRes.results[0].CNT || afterRes.results[0].count)) || 0;
+
+        return new Response(JSON.stringify({ ok: true, duplicates, before, after }), { headers: { 'content-type': 'application/json' } });
+      }
+
       // default help for API
       return new Response(JSON.stringify({ ok: true, routes: ['/api/ping', 'GET/POST /api/dialogue', 'POST /api/dse (JSON rows)', 'POST /api/sql (SELECT only)'] }), { headers: { 'content-type': 'application/json' } });
     } catch (err: any) {

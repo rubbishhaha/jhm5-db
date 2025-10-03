@@ -7,6 +7,9 @@
     <title>DSE 搜尋趨勢分析</title>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/dist/date-fns.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2"></script>
+    <link rel="stylesheet" href="/styles.css">
     <style>
         /* ---------- Reset & base ---------- */
         * { box-sizing: border-box; }
@@ -63,103 +66,187 @@
     <div class="page">
         <header class="header">
             <h1 class="main-title">DSE 搜尋趨勢分析</h1>
+            <div id="heroTyping" class="box" style="margin-top:12px; background:transparent; box-shadow:none; padding:0; text-align:center; font-size:1.05rem; color:#044;">載入中…</div>
         </header>
 
-        <main class="container">
-            <section class="box text-box" aria-labelledby="readme-heading">
-                <h2 id="readme-heading">README 內容</h2>
-                <div id="readme-content">載入中…</div>
-            </section>
+                <main class="container">
+                        <section class="box text-box" aria-labelledby="readme-heading">
+                                <h2 id="readme-heading">README 內容</h2>
+                                <div id="readme-content">載入中…</div>
 
-            <section class="box chart-box" aria-labelledby="chart-heading">
-                <h2 id="chart-heading">DSE 搜尋趨勢圖</h2>
-                <canvas id="trendChart" role="img" aria-label="DSE 搜尋趨勢圖"></canvas>
-            </section>
-        </main>
+                                <div style="margin-top:14px;">
+                                    <h3 style="margin:8px 0 6px 0; font-size:1rem; color:#235">對話紀錄（從資料庫）</h3>
+                                    <div id="dialogues-list" style="max-height:220px; overflow:auto; border-radius:8px; padding:8px; background:#fbfbfb; border:1px solid #eef;">
+                                        <div style="color:#888; font-size:0.95rem">載入中…</div>
+                                    </div>
+                                </div>
+                        </section>
+
+                        <section class="box chart-box" aria-labelledby="chart-heading">
+                                <h2 id="chart-heading">DSE 搜尋趨勢圖</h2>
+                                <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+                                    <label for="rangeSelect" style="font-size:0.95rem; color:#237">範圍：</label>
+                                    <select id="rangeSelect">
+                                        <option value="all">All</option>
+                                        <option value="1y">1 年</option>
+                                        <option value="6m">6 個月</option>
+                                        <option value="3m">3 個月</option>
+                                        <option value="1m">1 個月</option>
+                                    </select>
+                                </div>
+                                <canvas id="trendChart" role="img" aria-label="DSE 搜尋趨勢圖"></canvas>
+                                <div id="chartDebug" style="margin-top:8px; font-size:0.85rem; color:#a33"></div>
+                                <div style="margin-top:12px">
+                                    <a href="/past-papers.html" class="card-link" style="display:inline-block; text-decoration:none;">
+                                        <div class="card" style="display:inline-flex; align-items:center;">
+                                            <div class="card-icon">📄</div>
+                                            <div class="card-body"><strong>DSE Past Paper</strong><div style="font-size:0.9rem;color:#666">歷屆試題與資源</div></div>
+                                        </div>
+                                    </a>
+                                    <!-- admin cleanup button (visible in local/dev) -->
+                                    <button id="adminCleanupBtn" style="margin-left:12px;padding:8px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer">DB Cleanup</button>
+                                </div>
+                        </section>
+                </main>
+
+                <!-- Third full-width box: Past Papers featured -->
+                <div style="max-width:1200px;margin:18px auto 36px;">
+                    <section class="box" aria-labelledby="pastpapers-heading">
+                        <h2 id="pastpapers-heading">更多資源</h2>
+                        <div style="display:flex; gap:12px; align-items:center;">
+                            <a href="/past-papers.html" style="text-decoration:none; color:inherit;">
+                                <div class="card" style="display:flex; align-items:center; gap:12px;">
+                                    <div class="card-icon">📚</div>
+                                    <div>
+                                        <strong>歷屆試題與參考資源</strong>
+                                        <div style="color:#666; font-size:0.95rem; margin-top:6px">按此前往 Past Papers 頁面，包含 PDF 與連結。</div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </section>
+                </div>
     </div>
 
     <script>
-        // 將字串安全地轉成 HTML（簡單換行處理）
+        // 安全地把簡單 Markdown-like text 轉為 HTML（保留基本換行與標題）
         function renderMarkdownLike(text) {
-            // 最小處理：換行轉 <br>，保留 Markdown 標題粗體樣式的可讀性
             return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                                 .replace(/^### (.*$)/gm, '<strong>$1</strong>')
-                                 .replace(/^## (.*$)/gm, '<strong style="font-size:1.05em">$1</strong>')
-                                 .replace(/\n/g, '<br>');
+                .replace(/^### (.*$)/gm, '<strong>$1</strong>')
+                .replace(/^## (.*$)/gm, '<strong style="font-size:1.05em">$1</strong>')
+                .replace(/\n/g, '<br>');
         }
 
-        // 先嘗試 fetch README.md，失敗時使用內嵌 fallback
-        const readmeFallback = `# jhm5-db\n\n分析這個DSE搜尋趨勢數據，我可以觀察到以下幾個明顯的模式和趨勢：\n\n## 季節性趨勢\n\n年度高峰期（4-5月）**：\n- 每年4月中到5月初出現明顯高峰\n- 峰值：2020年(76), 2021年(72), 2022年(78), 2023年(87), 2024年(96), 2025年(100)\n- 這對應香港中學文憑考試(DSE)的主要考試期\n\n**次要高峰期（7月）**：\n- 每年7月中出現次高峰\n\n**低谷期**：\n- 每年5月底到6月、12月到1月初搜尋量較低`;
+        const readmeFallback = `# jhm5-db\n\n分析這個DSE搜尋趨勢數據，我可以觀察到以下幾個明顯的模式和趨勢：\n\n## 季節性趨勢`;
 
         async function loadReadme() {
             try {
-                const r = await fetch('README.md');
+                const r = await fetch('/README.md');
                 if (!r.ok) throw new Error('fetch failed');
                 const t = await r.text();
                 document.getElementById('readme-content').innerHTML = renderMarkdownLike(t);
             } catch (err) {
-                //如果透過 file:// 開啟會失敗，使用 fallback
                 document.getElementById('readme-content').innerHTML = renderMarkdownLike(readmeFallback);
                 console.warn('無法載入 README.md，使用 fallback 範本。', err);
             }
         }
 
-        // 解析 CSV（簡單版）
-        function parseCsv(text) {
-            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-            // 找到 header 行的索引（含 Week）
-            const headerIndex = lines.findIndex(l => /Week/i.test(l) || /Week,/.test(l));
-            const dataLines = headerIndex >= 0 ? lines.slice(headerIndex + 1) : lines;
-            const rows = [];
-            for (const line of dataLines) {
-                if (!line.includes(',')) continue;
-                const [date, val] = line.split(',').map(s => s.trim());
-                const n = Number(val);
-                if (!date || Number.isNaN(n)) continue;
-                rows.push({ date, value: n });
+        // 透過 /api/sql 取得 D1 資料（預期回傳 rows: [{date, value}, ...]）
+        async function fetchD1Rows() {
+            try {
+                const res = await fetch('/api/sql', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: 'SELECT date, value FROM dse_trends ORDER BY date ASC' })
+                });
+                if (!res.ok) throw new Error('api/sql returned ' + res.status);
+                const j = await res.json();
+                const rows = Array.isArray(j.rows) ? j.rows : (Array.isArray(j.results) ? j.results : (Array.isArray(j) ? j : []));
+                return rows;
+            } catch (e) {
+                console.error('fetchD1Rows api/sql error', e);
+                document.getElementById('chartDebug').textContent = 'api/sql error: ' + String(e);
+                return [];
             }
-            return rows;
         }
 
-        async function loadCsvAndRender() {
-            // fallback 小樣本（來自 DSE.csv 開頭）
-            const csvFallback = `Category: All categories\n\nWeek,DSE: (Hong Kong)\n2020-04-12,33\n2020-04-19,58\n2020-04-26,76\n2020-05-03,38\n2020-05-10,32\n2020-05-17,29\n2020-05-24,14`;
-
-            let csvText = csvFallback;
+        // fetch dialogues from /api/dialogue and render into #dialogues-list
+        async function fetchDialogues() {
+            const target = document.getElementById('dialogues-list');
             try {
-                const r = await fetch('DSE.csv');
-                if (!r.ok) throw new Error('fetch failed');
-                csvText = await r.text();
+                const res = await fetch('/api/dialogue');
+                if (!res.ok) throw new Error('dialogue fetch ' + res.status);
+                const j = await res.json();
+                const rows = Array.isArray(j.rows) ? j.rows : (Array.isArray(j) ? j : []);
+                if (!rows || rows.length === 0) {
+                    target.innerHTML = '<div style="color:#666">沒有對話紀錄。</div>';
+                    return;
+                }
+                // render simple list (oldest first). API returns DESC by default; ensure ascending
+                const ordered = rows.slice().reverse();
+                target.innerHTML = '';
+                for (const r of ordered) {
+                    const el = document.createElement('div');
+                    el.style.padding = '8px 6px';
+                    el.style.borderBottom = '1px solid #f0f0f0';
+                    el.innerHTML = `<div style="font-size:0.95rem;color:#123"><strong>${escapeHtml(r.role || '')}</strong> <span style="color:#888;font-size:0.85rem">${r.created_at ?? ''}</span></div><div style="margin-top:6px;color:#333;white-space:pre-wrap">${escapeHtml(r.message || '')}</div>`;
+                    target.appendChild(el);
+                }
             } catch (err) {
-                console.warn('無法載入 DSE.csv，使用 fallback 資料片段。', err);
+                console.warn('fetchDialogues error', err);
+                target.innerHTML = '<div style="color:#a33">無法載入對話（請檢查 /api/dialogue）</div>';
             }
+        }
 
-            const rows = parseCsv(csvText);
-            if (rows.length === 0) {
-                document.getElementById('trendChart').insertAdjacentText('afterend','<p>找不到可用的 CSV 數據。</p>');
+        function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+        function applyRangeFilter(rows, rangeKey) {
+            if (!rows || rows.length === 0) return rows;
+            if (rangeKey === 'all') return rows;
+            const end = new Date(rows[rows.length-1].date);
+            const start = new Date(end);
+            if (rangeKey === '1y') start.setFullYear(end.getFullYear()-1);
+            if (rangeKey === '6m') start.setMonth(end.getMonth()-6);
+            if (rangeKey === '3m') start.setMonth(end.getMonth()-3);
+            if (rangeKey === '1m') start.setMonth(end.getMonth()-1);
+            return rows.filter(r => {
+                const d = new Date(r.date);
+                return d >= start && d <= end;
+            });
+        }
+
+        function toChartData(rows) {
+            // return array of {x: date, y: value} for Chart.js time scale
+            return { data: rows.map(r => ({ x: r.date, y: Number(r.value) })) };
+        }
+
+        let chartInstance = null;
+        async function initChart() {
+            const rows = await fetchD1Rows();
+            if (!rows || rows.length === 0) {
+                document.getElementById('trendChart').insertAdjacentHTML('afterend', '<p>無法取得 DSE 資料。</p>');
                 return;
             }
-
-            const labels = rows.map(r => r.date);
-            const values = rows.map(r => r.value);
-
+            // debug: show a brief preview of rows fetched
+            try { document.getElementById('chartDebug').textContent = '取得 ' + rows.length + ' 筆資料，前 3 筆：' + JSON.stringify(rows.slice(0,3)); } catch(e){}
             const ctx = document.getElementById('trendChart').getContext('2d');
-            // 銷毀已存在的圖表（若有）
+                const cdata = toChartData(rows);
             if (window._trendChartInstance) window._trendChartInstance.destroy();
-
-            window._trendChartInstance = new Chart(ctx, {
+            try {
+                window._trendChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels,
-                    datasets: [{
-                        label: 'DSE 搜尋趨勢',
-                        data: values,
-                        borderColor: 'rgba(38, 166, 154, 0.9)',
-                        backgroundColor: 'rgba(38,166,154,0.12)',
-                        tension: 0.2,
-                        pointRadius: 3,
-                        fill: true
-                    }]
+                    datasets: [
+                        {
+                            label: 'DSE 搜尋趨勢',
+                            data: cdata.data,
+                            borderColor: 'rgba(38, 166, 154, 0.9)',
+                            backgroundColor: 'rgba(38,166,154,0.12)',
+                            tension: 0.2,
+                            pointRadius: 3,
+                            fill: true,
+                            parsing: { xAxisKey: 'x', yAxisKey: 'y' }
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
@@ -169,16 +256,83 @@
                         tooltip: { mode: 'index', intersect: false }
                     },
                     scales: {
-                        x: { display: true, title: { display: true, text: '日期' } },
-                        y: { display: true, title: { display: true, text: '搜尋量' }, beginAtZero: true }
+                        x: {
+                            type: 'time',
+                            time: { parser: 'yyyy-MM-dd', unit: 'month' },
+                            title: { display: true, text: '日期' }
+                        },
+                        y: {
+                            title: { display: true, text: '搜尋量' },
+                            beginAtZero: true
+                        }
                     }
                 }
             });
+
+            const rangeEl = document.getElementById('rangeSelect');
+            if (rangeEl) {
+                rangeEl.addEventListener('change', (e) => {
+                    const filtered = applyRangeFilter(rows, e.target.value);
+                    const d = toChartData(filtered);
+                    const inst = window._trendChartInstance;
+                    if (inst) {
+                        // dataset uses {x,y} points
+                        inst.data.datasets[0].data = d.data;
+                        inst.update();
+                    }
+                });
+            }
+            } catch (chartErr) {
+                console.error('Chart.js error', chartErr);
+                document.getElementById('chartDebug').textContent = 'Chart.js error: ' + String(chartErr);
+            }
         }
 
-        // 啟動
-        loadReadme();
-        loadCsvAndRender();
+        // typing effect
+        function typingEffect(containerSelector, text) {
+            const container = document.querySelector(containerSelector);
+            if (!container) return;
+            container.textContent = '';
+            const cursor = document.createElement('span'); cursor.className = 'typing-cursor'; cursor.textContent = '|'; container.appendChild(cursor);
+            const chars = Array.from(text);
+            let i = 0; let ticks = 0; let speed = randSpeed();
+            function randSpeed(){ return 20 + Math.floor(Math.random()*11); } // 20..30
+            function nextTick(){
+                if (i >= chars.length) { cursor.classList.add('blink'); return; }
+                const charNode = document.createTextNode(chars[i]); container.insertBefore(charNode, cursor); i++; ticks++;
+                if (ticks % 5 === 0) speed = randSpeed();
+                const delay = 1000 / speed; setTimeout(nextTick, delay);
+            }
+            nextTick();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadReadme();
+            initChart().catch(console.error);
+            fetchDialogues();
+            typingEffect('#heroTyping', '歡迎來到 DSE 趨勢分析平台，這裡會展示完整的 DSE 搜尋趨勢走勢圖與相關資源。');
+        });
+
+        // admin cleanup button (local/dev helper)
+        (function(){
+            const btn = document.getElementById('adminCleanupBtn');
+            if (!btn) return;
+            btn.addEventListener('click', async () => {
+                btn.disabled = true; btn.textContent = 'Cleaning...';
+                try {
+                    const r = await fetch('/api/admin/cleanup', { method: 'POST' });
+                    const j = await r.json();
+                    document.getElementById('chartDebug').textContent = 'Cleanup result: ' + JSON.stringify(j);
+                    // reload chart and dialogues
+                    await initChart();
+                    await fetchDialogues();
+                } catch (err) {
+                    document.getElementById('chartDebug').textContent = 'Cleanup error: ' + String(err);
+                } finally {
+                    btn.disabled = false; btn.textContent = 'DB Cleanup';
+                }
+            });
+        })();
     </script>
 </body>
 </html>

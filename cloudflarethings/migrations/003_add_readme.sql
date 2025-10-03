@@ -1,4 +1,12 @@
-#jhm5-db   DSEAnalysis
+-- 003_add_readme.sql
+-- Insert README.md content into dialogues table as a single row
+-- The INSERT uses a WHERE NOT EXISTS guard on session_id to avoid duplicate inserts
+
+BEGIN TRANSACTION;
+
+INSERT INTO dialogues (session_id, role, message, metadata)
+SELECT 'import-readme', 'system', 
+'#jhm5-db   DSEAnalysissssss
 分析這個DSE搜尋趨勢數據，我可以觀察到以下幾個明顯的模式和趨勢：
 
 ## 季節性趨勢
@@ -48,6 +56,8 @@
 - 4月中到5月初仍是關鍵關注期
 
 這個趨勢分析有助於教育機構、補習社和相關服務提供商規劃資源和宣傳時機。
+',
+'{"source":"README.md"}'
+WHERE NOT EXISTS (SELECT 1 FROM dialogues WHERE session_id = 'import-readme');
 
-
-
+COMMIT;

@@ -1,0 +1,15 @@
+/* Shared styles for the site (cards, typing cursor, responsive tweaks) */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; background: linear-gradient(135deg,#E0F7FA 0%,#B2DFDB 100%); color:#123; }
+.page { max-width:1200px; margin:0 auto; padding:24px; }
+.card { display:flex; gap:12px; align-items:center; padding:12px 16px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.08); background:#fff; transition: transform .14s ease, box-shadow .14s ease; }
+.card:hover{ transform: translateY(-4px); box-shadow:0 12px 30px rgba(0,0,0,0.12); }
+.card-icon{ font-size:28px; padding:8px; background:#f3f4f6; border-radius:8px; }
+.card-body h3{ margin:0; }
+
+.typing-cursor { color: #9ca3af; margin-left:4px; }
+.typing-cursor.blink { animation: typing-blink 1s steps(2,start) infinite; }
+@keyframes typing-blink { to { visibility: hidden; } }
+
+/* small utility */
+.box { background:#fff; padding:18px; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.08); }
