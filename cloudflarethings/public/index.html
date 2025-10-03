@@ -84,16 +84,7 @@
 
                         <section class="box chart-box" aria-labelledby="chart-heading">
                                 <h2 id="chart-heading">DSE 搜尋趨勢圖</h2>
-                                <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-                                    <label for="rangeSelect" style="font-size:0.95rem; color:#237">範圍：</label>
-                                    <select id="rangeSelect">
-                                        <option value="all">All</option>
-                                        <option value="1y">1 年</option>
-                                        <option value="6m">6 個月</option>
-                                        <option value="3m">3 個月</option>
-                                        <option value="1m">1 個月</option>
-                                    </select>
-                                </div>
+                                <!-- simplified chart: no range selector -->
                                 <canvas id="trendChart" role="img" aria-label="DSE 搜尋趨勢圖"></canvas>
                                 <div id="chartDebug" style="margin-top:8px; font-size:0.85rem; color:#a33"></div>
                                 <div style="margin-top:12px">
@@ -199,24 +190,9 @@
 
         function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-        function applyRangeFilter(rows, rangeKey) {
-            if (!rows || rows.length === 0) return rows;
-            if (rangeKey === 'all') return rows;
-            const end = new Date(rows[rows.length-1].date);
-            const start = new Date(end);
-            if (rangeKey === '1y') start.setFullYear(end.getFullYear()-1);
-            if (rangeKey === '6m') start.setMonth(end.getMonth()-6);
-            if (rangeKey === '3m') start.setMonth(end.getMonth()-3);
-            if (rangeKey === '1m') start.setMonth(end.getMonth()-1);
-            return rows.filter(r => {
-                const d = new Date(r.date);
-                return d >= start && d <= end;
-            });
-        }
-
         function toChartData(rows) {
-            // return array of {x: date, y: value} for Chart.js time scale
-            return { data: rows.map(r => ({ x: r.date, y: Number(r.value) })) };
+            // simple labels + data arrays
+            return { labels: rows.map(r => r.date), data: rows.map(r => Number(r.value)) };
         }
 
         let chartInstance = null;
@@ -229,59 +205,38 @@
             // debug: show a brief preview of rows fetched
             try { document.getElementById('chartDebug').textContent = '取得 ' + rows.length + ' 筆資料，前 3 筆：' + JSON.stringify(rows.slice(0,3)); } catch(e){}
             const ctx = document.getElementById('trendChart').getContext('2d');
-                const cdata = toChartData(rows);
+            const cdata = toChartData(rows);
             if (window._trendChartInstance) window._trendChartInstance.destroy();
             try {
                 window._trendChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [
-                        {
-                            label: 'DSE 搜尋趨勢',
-                            data: cdata.data,
-                            borderColor: 'rgba(38, 166, 154, 0.9)',
-                            backgroundColor: 'rgba(38,166,154,0.12)',
-                            tension: 0.2,
-                            pointRadius: 3,
-                            fill: true,
-                            parsing: { xAxisKey: 'x', yAxisKey: 'y' }
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: true },
-                        tooltip: { mode: 'index', intersect: false }
+                    type: 'line',
+                    data: {
+                        labels: cdata.labels,
+                        datasets: [
+                            {
+                                label: 'DSE 搜尋趨勢',
+                                data: cdata.data,
+                                borderColor: 'rgba(38, 166, 154, 0.9)',
+                                backgroundColor: 'rgba(38,166,154,0.12)',
+                                tension: 0.2,
+                                pointRadius: 3,
+                                fill: true
+                            }
+                        ]
                     },
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: { parser: 'yyyy-MM-dd', unit: 'month' },
-                            title: { display: true, text: '日期' }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: true },
+                            tooltip: { mode: 'index', intersect: false }
                         },
-                        y: {
-                            title: { display: true, text: '搜尋量' },
-                            beginAtZero: true
+                        scales: {
+                            x: { title: { display: true, text: '日期' } },
+                            y: { title: { display: true, text: '搜尋量' }, beginAtZero: true }
                         }
-                    }
-                }
-            });
-
-            const rangeEl = document.getElementById('rangeSelect');
-            if (rangeEl) {
-                rangeEl.addEventListener('change', (e) => {
-                    const filtered = applyRangeFilter(rows, e.target.value);
-                    const d = toChartData(filtered);
-                    const inst = window._trendChartInstance;
-                    if (inst) {
-                        // dataset uses {x,y} points
-                        inst.data.datasets[0].data = d.data;
-                        inst.update();
                     }
                 });
-            }
             } catch (chartErr) {
                 console.error('Chart.js error', chartErr);
                 document.getElementById('chartDebug').textContent = 'Chart.js error: ' + String(chartErr);
@@ -293,7 +248,10 @@
             const container = document.querySelector(containerSelector);
             if (!container) return;
             container.textContent = '';
-            const cursor = document.createElement('span'); cursor.className = 'typing-cursor'; cursor.textContent = '|'; container.appendChild(cursor);
+            const cursor = document.createElement('span');
+            cursor.className = 'typing-cursor';
+            cursor.textContent = '|';
+            container.appendChild(cursor);
             const chars = Array.from(text);
             let i = 0; let ticks = 0; let speed = randSpeed();
             function randSpeed(){ return 20 + Math.floor(Math.random()*11); } // 20..30
@@ -306,13 +264,6 @@
             nextTick();
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadReadme();
-            initChart().catch(console.error);
-            fetchDialogues();
-            typingEffect('#heroTyping', '歡迎來到 DSE 趨勢分析平台，這裡會展示完整的 DSE 搜尋趨勢走勢圖與相關資源。');
-        });
-
         // admin cleanup button (local/dev helper)
         (function(){
             const btn = document.getElementById('adminCleanupBtn');
@@ -323,7 +274,6 @@
                     const r = await fetch('/api/admin/cleanup', { method: 'POST' });
                     const j = await r.json();
                     document.getElementById('chartDebug').textContent = 'Cleanup result: ' + JSON.stringify(j);
-                    // reload chart and dialogues
                     await initChart();
                     await fetchDialogues();
                 } catch (err) {
@@ -333,6 +283,3 @@
                 }
             });
         })();
-    </script>
-</body>
-</html>
