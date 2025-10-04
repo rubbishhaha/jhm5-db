@@ -54,6 +54,16 @@ export default {
         return json({ rows });
       }
 
+      // Immediate admin route to delete the automated test message
+      if (path === '/api/admin/delete-test-message' && request.method === 'POST') {
+        try {
+          await env.dse_trend.prepare('DELETE FROM dialogues WHERE message LIKE ?').bind('%Hello from automated test%').run();
+          return json({ ok: true, deleted: true });
+        } catch (e:any) {
+          return json({ ok: false, error: String(e?.message ?? e) }, 500);
+        }
+      }
+
       // API help
       if (path === '/api/ping') return new Response('pong');
       return json({ ok: true, routes: ['/api/ping', 'GET/POST /api/dialogue', 'POST /api/sql (SELECT only)'] });

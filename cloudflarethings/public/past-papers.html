@@ -9,6 +9,12 @@
 </head>
 <body>
   <div class="page">
+    <button class="more-button" id="moreBtn">更多</button>
+    <div class="side-panel" id="sidePanel">
+      <h3>選單</h3>
+      <a href="/index.html">首頁</a>
+      <a href="/past-papers.html">資源</a>
+    </div>
     <h1>DSE Past Paper</h1>
     <p>這裡會放歷屆試題清單（未實作：後續可從 R2 列出或加入下載連結）。</p>
     <a href="https://jhm5-ex03.xiaolaji444.workers.dev" target="_blank" rel="noopener noreferrer" style="text-decoration:none; color:inherit;">
@@ -22,5 +28,11 @@
     </a>
     <a class="back" href="/">← 回首頁</a>
   </div>
+  <script>
+    (function(){
+      const btn = document.getElementById('moreBtn'); const panel = document.getElementById('sidePanel');
+      if(btn && panel){ btn.addEventListener('click', ()=> panel.classList.toggle('open') ); }
+    })();
+  </script>
 </body>
 </html>

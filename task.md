@@ -157,3 +157,17 @@ npm run dev   # 或使用 wrangler dev
 回覆你要的選項，我就開始動手（我建議選 1，這樣我可以直接實作並在本地驗證）。
 8) 部署
 
+---
+
+## 已完成（自動套用）
+
+以下為已自動套用並已 commit 的變更：
+
+- 將 `sheet1` 的 Chart.js 視覺與互動設定（包含：maintainAspectRatio:false、平滑曲線 tension、較小的點與較粗的線、tooltips interaction 設定、x 軸 autoSkip）套用到 `sheet2` 與 `sheet3`，使三張圖的互動一致並改善標籤擁擠問題。
+- 在 `cloudflarethings/migrations/003_add_readme.sql` 新增三條 prompts (session_id: `import-readme-sheet1/2/3`) 並在 `metadata` 中標示對應的 `sheet`，前端 `fetchPromptFor` 會解析 metadata 並顯示對應提示。
+- 新增 migration `cloudflarethings/migrations/004_remove_test_message.sql`，會在下一次部署時刪除 `dialogues` 表中包含自動化測試訊息（`Hello from automated test`）。
+- 在 `public/past-papers.html` 新增 "More" 按鈕與側欄（side-panel），與首頁保持一致的 UI 行為。
+- 在 `public/index.html` 新增對 prompts 的取用邏輯，並在每張圖下的 `#analysisN` 區塊顯示打字動畫（若 DB 中存在 prompt）。
+
+如需馬上在目前運行的 D1 實例移除測試訊息，請回覆「立即刪除」，我會在 Worker 上執行刪除（會立即生效，但不會記錄到 migration 之外）。
+

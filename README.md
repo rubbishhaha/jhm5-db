@@ -142,7 +142,4 @@ sheet 3
 
 
 
-
-the fetch are functional, but the graph can beautified, the graph is low in graphic and the word are squeezed together, fix it.
-
-secondly, please refer to the readme.md, in contain analysis for each table, and refer to the typingeffect in reference.html, 
+revise: i want three prompt box but not all put in one. each prompt box is underneath one chart, explaining the trend of the chart. and i don'talso there is nothing in a DSE 搜尋趨勢 (整體) box. so delete 對話紀錄（從資料庫）and add 
