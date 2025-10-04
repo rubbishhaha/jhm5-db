@@ -2,262 +2,287 @@
 <html lang="zh-TW">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>DSE 搜尋趨勢分析</title>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/dist/date-fns.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2"></script>
-    <link rel="stylesheet" href="/styles.css">
-    <style>
-        * { box-sizing: border-box; }
-        html,body { height: 100%; }
-        body {
-            margin: 0;
-            font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
-            background: linear-gradient(135deg,#E0F7FA 0%,#B2DFDB 100%);
-            padding: 24px;
-            color: #123;
-        }
-        .page { max-width: 1200px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 18px; }
-        .main-title { color: #00838F; font-size: 2rem; margin: 0; }
-        .container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
-        .box { background: #fff; padding: 18px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
-        .text-box { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
-        .chart-box { height: 360px; position: relative; overflow: hidden; }
-        .chart-box canvas { width: 100% !important; height: 100% !important; display: block; }
-        h2 { margin: 0 0 12px 0; font-size: 1.1rem; color: #264653; border-bottom: 1px solid #eef; padding-bottom: 8px; }
-        @media (max-width: 820px) { .container { grid-template-columns: 1fr; } }
-        .cohort-select { margin-top:8px; }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DSE 搜尋趨勢分析</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/dist/date-fns.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2"></script>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    * { box-sizing: border-box; }
+    html,body { height: 100%; }
+    body{
+      margin:0; font-family: 'Microsoft JhengHei','Noto Sans TC',sans-serif;
+      background: linear-gradient(135deg,#E0F7FA 0%,#B2DFDB 100%);
+      padding:24px; color:#123;
+    }
+    .page{ max-width:1200px; margin:0 auto; }
+    .header{ text-align:center; margin-bottom:18px }
+    .main-title{ color:#00838F; font-size:2rem; margin:0 }
+    .box{ background:#fff; padding:18px; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.08) }
+    /* set a stable container height to avoid layout feedback loops that make the chart expand
+       keep a reserved area at the bottom for the overlayed analysis box */
+    .chart-box{ position:relative; height:360px; overflow:visible }
+    /* position canvas absolutely inside the box so it doesn't change parent layout */
+    .chart-box canvas{ position:absolute !important; top:18px; left:18px; right:18px; bottom:76px; width:auto !important; height:auto !important; display:block }
+  /* overlay analysis box so prompts are visible without changing chart settings */
+  .analysis{ position:absolute; bottom:12px; left:18px; right:18px; background: rgba(255,255,255,0.94); padding:8px; border-radius:8px; z-index:3; min-height:48px }
+    h2{ margin:0 0 12px 0; font-size:1.05rem; color:#264653 }
+  /* ...existing code... */
+    .typing-cursor{ display:inline-block; margin-left:6px; color:#888 }
+    .more-button{ position:fixed; right:18px; top:18px; width:44px; height:44px; border-radius:22px; background:#fff; border:1px solid #eee; box-shadow:0 6px 16px rgba(0,0,0,0.06); cursor:pointer }
+    .side-panel{ position:fixed; right:-320px; top:70px; width:300px; transition:right .25s ease; padding:12px }
+    .side-panel.open{ right:18px }
+  /* debug panel removed */
+    @media (max-width:820px){ .cols{ display:block } }
+  </style>
 </head>
 
 <body>
   <button class="more-button" id="moreBtn" aria-label="更多選單">⋯</button>
-    <div class="side-panel" id="sidePanel">
-      <h3>選單</h3>
-      <a href="/index.html">首頁</a>
-      <a href="/past-papers.html">資源</a>
-    </div>
-    <div class="page">
+  <div class="side-panel box" id="sidePanel">
+    <h3>選單</h3>
+    <a href="/index.html">首頁</a><br/>
+    <a href="/past-papers.html">資源</a>
+  </div>
+
+  <div class="page">
     <header class="header">
       <h1 class="main-title">DSE 搜尋趨勢分析</h1>
-      <div id="heroTyping" class="box" style="margin-top:12px; background:transparent; box-shadow:none; padding:0; text-align:center; font-size:1.05rem; color:#044;">載入中…</div>
+      <div id="heroTyping" class="box" style="margin-top:12px;background:transparent;box-shadow:none;padding:0;font-size:1.05rem;color:#044">載入中…</div>
     </header>
 
-    <main class="container">
-      <!-- left: dialogues -->
-      <section class="box" aria-labelledby="dialogues-heading">
-        <h2 id="dialogues-heading">對話紀錄（從資料庫）</h2>
-        <div id="dialogues-list" style="max-height:420px; overflow:auto; border-radius:8px; padding:8px; background:#fbfbfb; border:1px solid #eef;">
-          <div style="color:#888; font-size:0.95rem">載入中…</div>
-        </div>
+    <section class="box chart-box" aria-labelledby="main-heading" style="margin-bottom:18px">
+      <h2 id="main-heading">DSE 主趨勢</h2>
+      <canvas id="trendChart" role="img" aria-label="DSE 主趨勢圖"></canvas>
+    </section>
+
+    <div class="cols" style="display:grid; grid-template-columns: 1fr; gap:18px; max-width:1200px; margin:18px auto 36px">
+      <section class="box chart-box">
+        <h2>表格 1 - 累積趨勢</h2>
+        <div style="margin-top:6px">群組: <select id="cohort1"><option value="all_total">All Total</option><option value="all_male">All Male</option><option value="all_female">All Female</option></select></div>
+        <canvas id="chart1"></canvas>
+        
+        <div id="analysis1" class="analysis"></div>
       </section>
 
-      <!-- right: main trend chart -->
-      <section class="box chart-box" aria-labelledby="chart-heading">
-        <h2 id="chart-heading">DSE 搜尋趨勢 (整體)</h2>
-        <canvas id="trendChart" role="img" aria-label="DSE 搜尋趨勢圖"></canvas>
-        <div id="chartDebug" style="margin-top:8px; font-size:0.85rem; color:#a33"></div>
-        <div style="margin-top:12px">
-          <button id="adminCleanupBtn" style="padding:8px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer">DB Cleanup</button>
-        </div>
+      <section class="box chart-box">
+        <h2>表格 2 - 累積趨勢</h2>
+        <div style="margin-top:6px">群組: <select id="cohort2"><option value="all_total">All Total</option><option value="all_male">All Male</option><option value="all_female">All Female</option></select></div>
+        <canvas id="chart2"></canvas>
+        
+        <div id="analysis2" class="analysis"></div>
       </section>
-    </main>
 
-        <!-- Three specific sheet charts, full width stacked below -->
-        <div style="max-width:1200px;margin:18px auto 48px; display:grid; gap:18px;">
-            <section class="box chart-box" aria-labelledby="sheet1-heading">
-                <h2 id="sheet1-heading">表格 1 - 累積趨勢</h2>
-            <div class="cohort-select">群組: <select id="cohort1"><option value="all_total">All Total</option><option value="all_male">All Male</option><option value="all_female">All Female</option></select></div>
-                <canvas id="chart1"></canvas>
-                <div id="debug1" style="margin-top:8px;color:#a33;font-size:0.9rem"></div>
-        <div id="analysis1" class="text-box" style="margin-top:12px; font-size:0.95rem; color:#333; min-height:48px"></div>
-            </section>
-
-            <section class="box chart-box" aria-labelledby="sheet2-heading">
-                <h2 id="sheet2-heading">表格 2 - 累積趨勢</h2>
-                <div class="cohort-select">群組: <select id="cohort2"><option value="all_total">All Total</option><option value="all_male">All Male</option><option value="all_female">All Female</option></select></div>
-                <canvas id="chart2"></canvas>
-                <div id="debug2" style="margin-top:8px;color:#a33;font-size:0.9rem"></div>
-        <div id="analysis2" class="text-box" style="margin-top:12px; font-size:0.95rem; color:#333; min-height:48px"></div>
-            </section>
-
-            <section class="box chart-box" aria-labelledby="sheet3-heading">
-                <h2 id="sheet3-heading">表格 3 - 累積趨勢</h2>
-                <div class="cohort-select">群組: <select id="cohort3"><option value="all_total">All Total</option><option value="all_male">All Male</option><option value="all_female">All Female</option></select></div>
-                <canvas id="chart3"></canvas>
-                <div id="debug3" style="margin-top:8px;color:#a33;font-size:0.9rem"></div>
-        <div id="analysis3" class="text-box" style="margin-top:12px; font-size:0.95rem; color:#333; min-height:48px"></div>
-            </section>
-        </div>
+      <section class="box chart-box">
+        <h2>表格 3 - 累積趨勢</h2>
+        <div style="margin-top:6px">群組: <select id="cohort3"><option value="all_total">All Total</option><option value="all_male">All Male</option><option value="all_female">All Female</option></select></div>
+        <canvas id="chart3"></canvas>
+        
+        <div id="analysis3" class="analysis"></div>
+      </section>
     </div>
 
-    <script>
-  // Page simplified: no README/markdown. Focus on charts and dialogues.
+    
+  </div>
 
-        // Safe SQL posts to /api/sql
-        const ALLOWED_COHORTS = new Set(['day_total','day_male','day_female','all_total','all_male','all_female']);
-        const ALLOWED_TABLES = ['sheet1','sheet2','sheet3'];
+  <script>
+    // Small helper: safe fetch with timeout and JSON parsing
+    async function safeFetch(url, opts = {}, timeoutMs = 5000){
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeoutMs);
+      try{
+        const res = await fetch(url, { ...opts, signal: controller.signal });
+        clearTimeout(id);
+        return res;
+      }catch(e){ clearTimeout(id); throw e; }
+    }
 
-        async function postSQL(query){
-            const res = await fetch('/api/sql', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ query }) });
-            if(!res.ok) throw new Error('/api/sql returned ' + res.status);
-            return await res.json();
-        }
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-        async function fetchD1RowsSafe(table, cohort){
-            if(!ALLOWED_TABLES.includes(table)) throw new Error('Invalid table');
-            if(!ALLOWED_COHORTS.has(cohort)) cohort = 'all_total';
-            const q = `SELECT label, COALESCE(${cohort},0) AS value FROM ${table} ORDER BY id ASC`;
-            const j = await postSQL(q);
-            const rows = Array.isArray(j.rows) ? j.rows : (Array.isArray(j.results) ? j.results : (Array.isArray(j) ? j : []));
-            return rows;
-        }
+    const ALLOWED_COHORTS = new Set(['day_total','day_male','day_female','all_total','all_male','all_female']);
+    const ALLOWED_TABLES = ['sheet1','sheet2','sheet3'];
 
-        async function fetchDialogues(){
-            const target = document.getElementById('dialogues-list');
-            try{
-                const res = await fetch('/api/dialogue');
-                if(!res.ok) throw new Error('dialogue fetch ' + res.status);
-                const j = await res.json();
-                const rows = Array.isArray(j.rows) ? j.rows : (Array.isArray(j) ? j : []);
-                if(!rows || rows.length===0){ target.innerHTML = '<div style="color:#666">沒有對話紀錄。</div>'; return; }
-                // filter out the automated test message
-                const filteredRows = rows.filter(r => !(String(r.message||'').includes('Hello from automated test')));
-                const ordered = filteredRows.slice().reverse();
-                target.innerHTML = '';
-                for(const r of ordered){
-                    const el = document.createElement('div');
-                    el.style.padding = '8px 6px'; el.style.borderBottom = '1px solid #f0f0f0';
-                    el.innerHTML = `<div style="font-size:0.95rem;color:#123"><strong>${escapeHtml(r.role||'')}</strong> <span style="color:#888;font-size:0.85rem">${r.created_at||''}</span></div><div style="margin-top:6px;color:#333;white-space:pre-wrap">${escapeHtml(r.message||'')}</div>`;
-                    target.appendChild(el);
-                }
-            }catch(err){ console.warn('fetchDialogues error',err); target.innerHTML = '<div style="color:#a33">無法載入對話（請檢查 /api/dialogue）</div>'; }
-        }
+    async function postSQL(query){
+      const res = await safeFetch('/api/sql', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ query }) }, 7000);
+      if(!res.ok) throw new Error('/api/sql returned ' + res.status);
+      return await res.json();
+    }
 
-      // fetch prompt text from dialogues (supports session_id variants and metadata)
-      async function fetchPromptFor(sheetName){
-        try{
-          const res = await fetch('/api/dialogue'); if(!res.ok) return '';
-          const j = await res.json(); const rows = Array.isArray(j.rows)?j.rows:(Array.isArray(j)?j:[]);
-          for(const r of rows){
-            try{
-              // match by explicit session id prefix
-              if(r.session_id && String(r.session_id).startsWith('import-readme') && r.role==='system'){
-                // if metadata exists and mentions sheet, prefer that
-                if(r.metadata){
-                  try{ const m = typeof r.metadata==='string'?JSON.parse(r.metadata):r.metadata; if(m && m.sheet===sheetName) return r.message; }catch(e){}
-                }
-                // fallback: message includes sheet name
-                if(String(r.message||'').toLowerCase().includes(sheetName.toLowerCase())) return r.message;
-              }
-            }catch(e){/* ignore per-row parse errors */}
+    async function fetchD1RowsSafe(table, cohort){
+      if(!ALLOWED_TABLES.includes(table)) throw new Error('Invalid table ' + table);
+      if(!ALLOWED_COHORTS.has(cohort)) cohort = 'all_total';
+      const q = `SELECT label, COALESCE(${cohort},0) AS value FROM ${table} ORDER BY id ASC`;
+      const j = await postSQL(q);
+      return Array.isArray(j.rows) ? j.rows : (Array.isArray(j.results) ? j.results : []);
+    }
+
+    // Fetch dialogues from /api/dialogue with robust parsing and rendering
+    async function fetchDialogues(){
+      const listEl = document.getElementById('dialogues-list'); // optional
+      try{
+        const res = await safeFetch('/api/dialogue', { cache: 'no-store' }, 7000);
+        if(!res.ok) throw new Error('dialogue fetch ' + res.status);
+        const j = await res.json();
+        const rows = Array.isArray(j.rows) ? j.rows : (Array.isArray(j) ? j : []);
+        const filtered = rows.filter(r => !String(r.message||'').includes('Hello from automated test'));
+        // parse metadata if string
+        filtered.forEach(r => { if(r && r.metadata && typeof r.metadata === 'string'){ try{ r._metadata = JSON.parse(r.metadata); }catch(e){ r._metadata = null; } } else { r._metadata = r.metadata || null; } });
+        // sort oldest-first
+        filtered.sort((a,b)=>{ const ta = a.created_at ? Date.parse(a.created_at) : (a.id||0); const tb = b.created_at ? Date.parse(b.created_at) : (b.id||0); return (ta||0)-(tb||0); });
+
+        // debug panel removed: no debugEl output
+
+        // if there's a real dialogues-list on the page, render in readable form
+        if(listEl){
+          listEl.innerHTML = '';
+          if(filtered.length===0){ listEl.innerHTML = '<div style="color:#666">沒有對話紀錄。</div>'; }
+          for(const r of filtered){
+            const el = document.createElement('div');
+            el.style.padding = '8px 6px'; el.style.borderBottom = '1px solid #f0f0f0';
+            const when = r.created_at ? new Date(r.created_at).toLocaleString('zh-TW') : '';
+            const role = escapeHtml(r.role || '');
+            const msg = escapeHtml(r.message || '');
+            let metaHtml = '';
+            if(r._metadata) metaHtml = `<div style="font-size:0.82rem;color:#666;margin-top:6px">metadata: ${escapeHtml(JSON.stringify(r._metadata))}</div>`;
+            el.innerHTML = `<div style="font-size:0.95rem;color:#123"><strong>${role}</strong> <span style="color:#888;font-size:0.85rem">${when}</span></div><div style="margin-top:6px;color:#333;white-space:pre-wrap">${msg}</div>${metaHtml}`;
+            listEl.appendChild(el);
           }
-        }catch(e){/*ignore*/}
-        return '';
+        }
+        return filtered;
+      }catch(err){
+        console.warn('fetchDialogues error', err);
+        if(listEl) listEl.innerHTML = '<div style="color:#a33">無法載入對話（請檢查 /api/dialogue）</div>';
+        return [];
       }
+    }
 
-        function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-        function toChartData(rows){ return { labels: rows.map(r=>r.label), data: rows.map(r=>Number(r.value)||0) }; }
-
-        // main big chart (trendChart) - reuse same /api/sql but query dse_trends if present
-        async function initMainTrend(){
-            try{
-                const res = await fetch('/api/sql', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ query: 'SELECT date, value FROM dse_trends ORDER BY date ASC' }) });
-                if(!res.ok) throw new Error('api/sql returned ' + res.status);
-                const j = await res.json();
-                const rows = Array.isArray(j.rows) ? j.rows : (Array.isArray(j.results) ? j.results : (Array.isArray(j)? j: []));
-                if(!rows || rows.length===0) { document.getElementById('chartDebug').textContent = '沒有主趨勢資料'; return; }
-                document.getElementById('chartDebug').textContent = '';
-                const cdata = toChartData(rows.map(r=>({ label: r.date, value: r.value })));
-                const ctx = document.getElementById('trendChart').getContext('2d');
-                if(window._trendChartInstance) window._trendChartInstance.destroy();
-                window._trendChartInstance = new Chart(ctx, {
-                    type:'line',
-                    data: { labels: cdata.labels, datasets: [{ label:'DSE 搜尋趨勢', data: cdata.data, borderColor:'rgba(38,166,154,0.95)', backgroundColor:'rgba(38,166,154,0.12)', pointRadius:2, borderWidth:2, tension:0.25 }] },
-                    options: {
-                      responsive:true,
-                      maintainAspectRatio:false,
-                      plugins:{ legend:{ display:false }, tooltip:{ mode:'index', intersect:false } },
-                      interaction: { mode:'nearest', axis:'x', intersect:false },
-                      scales:{
-                        x: { type:'time', time:{ unit:'month', displayFormats:{ month:'yyyy-MM' } }, ticks:{ autoSkip:true, maxRotation:0, maxTicksLimit:12 }, grid:{ color:'rgba(0,0,0,0.03)' } },
-                        y: { beginAtZero:true, grid:{ color:'rgba(0,0,0,0.03)' } }
-                      }
-                    }
-                });
-            }catch(err){ document.getElementById('chartDebug').textContent = '無法取得主趨勢資料'; console.warn(err); }
+    // find a prompt in dialogues for a sheetName
+    async function fetchPromptFor(sheetName){
+      try{
+        const rows = await fetchDialogues();
+        // search from newest to oldest for system prompts prefixed with import-readme
+        for(let i = rows.length - 1; i >= 0; i--){
+          const r = rows[i];
+          try{
+            if(r.session_id && String(r.session_id).startsWith('import-readme') && r.role === 'system'){
+              if(r._metadata && r._metadata.sheet === sheetName) return r.message || '';
+              if(String(r.message||'').toLowerCase().includes(sheetName.toLowerCase())) return r.message || '';
+            }
+          }catch(e){/*ignore per-row parse*/}
         }
+      }catch(e){/*ignore*/}
+      return '';
+    }
 
-        // sheet charts: load, cumulate and render
-        window._sheetCharts = window._sheetCharts || {};
-        async function loadSheetChart(n){
-            const debug = document.getElementById('debug'+n);
-            const sel = document.getElementById('cohort'+n);
-            const canvas = document.getElementById('chart'+n);
-            if(!sel || !canvas || !debug) return;
-            debug.textContent = '載入中⋯';
-            const cohort = ALLOWED_COHORTS.has(sel.value) ? sel.value : 'all_total';
-            const table = ALLOWED_TABLES[n-1];
-            try{
-                const rows = await fetchD1RowsSafe(table, cohort);
-                if(!rows || rows.length===0){ debug.textContent = '沒有資料'; if(window._sheetCharts[n]){ window._sheetCharts[n].destroy(); delete window._sheetCharts[n]; } return; }
-                const labels = rows.map(r=>r.label);
-                const vals = rows.map(r=>Number(r.value)||0);
-                const cum = []; let s=0; for(const v of vals){ s+=v; cum.push(s); }
-                const ctx = canvas.getContext('2d'); if(window._sheetCharts[n]) window._sheetCharts[n].destroy();
-                window._sheetCharts[n] = new Chart(ctx, {
-                  type:'line',
-                  data:{ labels, datasets:[{ label:`累積 (${cohort})`, data:cum, borderColor:'#1976d2', backgroundColor:'rgba(25,118,210,0.12)', fill:true, tension:0.25, pointRadius:1, borderWidth:2 }] },
-                  options:{
-                    responsive:true,
-                    maintainAspectRatio:false,
-                    plugins:{ legend:{ display:false }, tooltip:{ mode:'index', intersect:false } },
-                    interaction:{ mode:'nearest', axis:'x', intersect:false },
-                    scales:{ x:{ ticks:{ autoSkip:true, maxRotation:0, maxTicksLimit:10 }, grid:{ color:'rgba(0,0,0,0.03)' } }, y:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,0.03)' } } }
-                  }
-                });
-                debug.textContent = '';
+    // typing effect: clear then type into element
+    function typingEffect(el, text){
+      if(!el) return;
+      // simple typing animation for visible text content (element may already contain HTML)
+      // we'll type into a plain text node while keeping the element's innerHTML structure
+      el.innerHTML = '';
+      const cursor = document.createElement('span'); cursor.className = 'typing-cursor'; cursor.textContent = '|';
+      const textNode = document.createTextNode('');
+      el.appendChild(textNode);
+      el.appendChild(cursor);
+      const chars = Array.from(String(text || ''));
+      let i = 0;
+      function step(){
+        if(i >= chars.length){ cursor.classList.add('blink'); return; }
+        textNode.data = textNode.data + chars[i]; i++;
+        setTimeout(step, 20 + Math.random() * 40);
+      }
+      step();
+    }
 
-                // fetch and type the prompt for this sheet into the analysis box
-                (async function(){
-                  const prompt = await fetchPromptFor(table);
-                  const target = '#analysis' + n;
-                  if(prompt && prompt.trim().length>0) typingEffect(target, prompt);
-                  else document.querySelector(target).textContent = '（無提示）';
-                })();
-            }catch(err){ debug.textContent = '錯誤: ' + (err.message||String(err)); console.warn(err); }
-        }
+    // very small markdown renderer (supports headers #, ##, bold **, italic *, inline code ``, and line breaks)
+    function renderMarkdown(md){
+      if(!md) return '';
+      // escape HTML first
+      const esc = (s)=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      // process line by line for headers
+      return esc(md).split(/\n/).map(line=>{
+        line = line.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+        line = line.replace(/\*(.+?)\*/g,'<em>$1</em>');
+        line = line.replace(/`([^`]+?)`/g,'<code>$1</code>');
+        const h = line.match(/^\s*(#{1,6})\s+(.*)$/);
+        if(h){ const level = Math.min(6,h[1].length); return `<h${level} style="margin:6px 0">${h[2]}</h${level}>`; }
+        return `<div style="margin:4px 0">${line}</div>`;
+      }).join('');
+    }
 
-        // typing effect
-        function typingEffect(containerSelector, text){
-            const container = document.querySelector(containerSelector); if(!container) return; container.textContent='';
-            const cursor = document.createElement('span'); cursor.className='typing-cursor'; cursor.textContent='|'; container.appendChild(cursor);
-            const chars = Array.from(text); let i=0; function next(){ if(i>=chars.length){ cursor.classList.add('blink'); return; } container.insertBefore(document.createTextNode(chars[i]), cursor); i++; setTimeout(next, 40 + Math.random()*50); } next();
-        }
+    // charts
+    window._sheetCharts = window._sheetCharts || {};
+    async function renderSheetChart(n){
+      const debug = document.getElementById('debug' + n);
+      const sel = document.getElementById('cohort' + n);
+      const canvas = document.getElementById('chart' + n);
+      const analysisEl = document.getElementById('analysis' + n);
+      if(debug) debug.textContent = '載入中⋯';
+      if(!sel || !canvas) return;
+      const table = ALLOWED_TABLES[n-1];
+      const cohort = ALLOWED_COHORTS.has(sel.value) ? sel.value : 'all_total';
+      try{
+        const rows = await fetchD1RowsSafe(table, cohort);
+  if(!rows || rows.length === 0){ if(window._sheetCharts[n]){ window._sheetCharts[n].destroy(); delete window._sheetCharts[n]; } analysisEl.textContent = '（無提示）'; return; }
+        const labels = rows.map(r=>r.label);
+        const vals = rows.map(r=>Number(r.value)||0);
+        const cum = []; let s=0; for(const v of vals){ s+=v; cum.push(s); }
+        const ctx = canvas.getContext('2d'); if(window._sheetCharts[n]) window._sheetCharts[n].destroy();
+        window._sheetCharts[n] = new Chart(ctx,{
+          type:'line', data:{ labels, datasets:[{ label:`累積 (${cohort})`, data:cum, borderColor:'#1976d2', backgroundColor:'rgba(25,118,210,0.12)', fill:true, tension:0.25, pointRadius:1, borderWidth:2 }] },
+          options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, interaction:{ mode:'nearest', axis:'x', intersect:false }, layout:{ padding:{ top:8,right:8,bottom:28,left:8 } }, scales:{ x:{ ticks:{ autoSkip:true, maxRotation:0, maxTicksLimit:10, align:'center' }, grid:{ color:'rgba(0,0,0,0.03)' } }, y:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,0.03)' } } } }
+        });
+        
 
-        // admin cleanup
-        (function(){ const btn = document.getElementById('adminCleanupBtn'); if(!btn) return; btn.addEventListener('click', async ()=>{ btn.disabled=true; btn.textContent='Cleaning...'; try{ const r = await fetch('/api/admin/cleanup',{ method:'POST' }); const j = await r.json(); document.getElementById('chartDebug').textContent = 'Cleanup: ' + JSON.stringify(j); await initMainTrend(); await fetchDialogues(); }catch(e){ document.getElementById('chartDebug').textContent='Cleanup error'; console.warn(e); } finally{ btn.disabled=false; btn.textContent='DB Cleanup'; } }); })();
+        // fetch prompt and show
+        (async ()=>{
+          const prompt = await fetchPromptFor(table);
+          if(analysisEl){
+            if(prompt && prompt.trim().length>0){
+              // render markdown safely then animate visible typing of the plain text
+              const rendered = renderMarkdown(prompt);
+              analysisEl.innerHTML = rendered; // show rendered markdown immediately
+              // create a temporary plain-text node for typing animation (append after the rendered content)
+              setTimeout(()=>typingEffect(analysisEl, prompt), 600);
+              // fallback ensure
+              setTimeout(()=>{ if(!analysisEl.textContent || analysisEl.textContent.trim()==='') analysisEl.innerHTML = rendered; }, 1400);
+            } else {
+              analysisEl.textContent = '（無提示）';
+            }
+          }
+        })();
+  }catch(err){ console.warn(err); }
+    }
+
+    // main trend chart
+    async function initMainTrend(){
+      try{
+        const res = await safeFetch('/api/sql', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ query: 'SELECT date, value FROM dse_trends ORDER BY date ASC' }) }, 7000);
+        if(!res.ok) throw new Error('api/sql returned ' + res.status);
+        const j = await res.json();
+        const rows = Array.isArray(j.rows) ? j.rows : (Array.isArray(j.results) ? j.results : []);
+  if(!rows || rows.length===0){ return; }
+        const labels = rows.map(r=>r.date);
+        const data = rows.map(r=>Number(r.value)||0);
+        const ctx = document.getElementById('trendChart').getContext('2d'); if(window._trendChartInstance) window._trendChartInstance.destroy();
+        window._trendChartInstance = new Chart(ctx, { type:'line', data:{ labels, datasets:[{ label:'DSE 搜尋趨勢', data, borderColor:'rgba(38,166,154,0.95)', backgroundColor:'rgba(38,166,154,0.12)', pointRadius:2, borderWidth:2, tension:0.25 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false }, tooltip:{ mode:'index', intersect:false } }, interaction:{ mode:'nearest', axis:'x', intersect:false }, layout:{ padding:{ top:10,right:10,bottom:30,left:10 } }, scales:{ x:{ type:'time', time:{ unit:'month', displayFormats:{ month:'yyyy-MM' } }, ticks:{ autoSkip:true, maxTicksLimit:12, maxRotation:0, align:'center' }, grid:{ color:'rgba(0,0,0,0.03)' } }, y:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,0.03)' } } } } });
+  }catch(err){ console.warn(err); }
+    }
+
+    // admin cleanup button if present
+  // admin cleanup button removed
 
     document.addEventListener('DOMContentLoaded', ()=>{
-      // wire more button toggle
-      try{
-        const more = document.getElementById('moreBtn'); const panel = document.getElementById('sidePanel');
-        if(more && panel){ more.addEventListener('click', (e)=>{ panel.classList.toggle('open'); }); }
-      }catch(e){/* ignore */}
+      try{ document.getElementById('moreBtn').addEventListener('click', ()=>document.getElementById('sidePanel').classList.toggle('open')); }catch(e){}
+      typingEffect(document.getElementById('heroTyping'), '歡迎來到 DSE 趨勢分析平台');
       initMainTrend();
+      for(let n=1;n<=3;n++){ const sel = document.getElementById('cohort'+n); if(sel) sel.addEventListener('change', ()=>renderSheetChart(n)); renderSheetChart(n); }
+      // initial fetch dialogues for debug
       fetchDialogues();
-      typingEffect('#heroTyping', '歡迎來到 DSE 趨勢分析平台');
-      // wire sheet charts
-      for(let n=1;n<=3;n++){ const sel = document.getElementById('cohort'+n); if(sel){ sel.addEventListener('change', ()=>loadSheetChart(n)); } loadSheetChart(n); }
     });
-    </script>
+  </script>
 </body>
+
 </html>
-    </script>
-    </body>
-    </html>

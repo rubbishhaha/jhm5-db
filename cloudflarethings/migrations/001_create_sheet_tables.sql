@@ -33,3 +33,14 @@ CREATE TABLE sheet3 (
   all_female INTEGER,
   all_total INTEGER
 );
+
+-- dialogues table: store imported README and prompts
+DROP TABLE IF EXISTS dialogues;
+CREATE TABLE dialogues (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id TEXT,
+  role TEXT,
+  message TEXT,
+  metadata TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

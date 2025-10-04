@@ -139,7 +139,3 @@ sheet 3
 - 數學延伸部分作為進階數理能力的指標
 
 這些趨勢顯示香港教育體系通過「核心科目+選修科目」的雙重篩選機制，在確保基本教育質量的同時，實現對高等教育入學的精密分流，同時也反映了學科能力上的性別差異模式。
-
-
-
-revise: i want three prompt box but not all put in one. each prompt box is underneath one chart, explaining the trend of the chart. and i don'talso there is nothing in a DSE 搜尋趨勢 (整體) box. so delete 對話紀錄（從資料庫）and add 
