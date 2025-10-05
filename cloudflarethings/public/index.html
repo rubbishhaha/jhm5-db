@@ -8,6 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/dist/date-fns.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2"></script>
+  <link rel="stylesheet" href="/styles.css" />
   <style>
     * { box-sizing: border-box; }
     html,body { height: 100%; }
@@ -63,9 +64,10 @@
         <div style="margin-top:6px">群組: <select id="cohort1"><option value="all_total">All Total</option><option value="all_male">All Male</option><option value="all_female">All Female</option></select></div>
         <canvas id="chart1"></canvas>
         
-        <div id="analysis1" class="analysis"></div>
+        
       </section>
-
+      
+      <div id="analysis1" class="analysis"></div>
       <section class="box chart-box">
         <h2>表格 2 - 累積趨勢</h2>
         <div style="margin-top:6px">群組: <select id="cohort2"><option value="all_total">All Total</option><option value="all_male">All Male</option><option value="all_female">All Female</option></select></div>
