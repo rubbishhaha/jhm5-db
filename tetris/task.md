@@ -1,0 +1,30 @@
+- Build a playable Tetris game as a single HTML file: `tetris.html` inside the `tetris/` directory.
+- Rules and mechanics to implement:
+  - Use the standard 7-bag randomizer for spawning tetrominoes (7 pieces: I, J, L, O, S, T, Z).
+  - Standard Tetris rules for rotation and wall kicks (SRS preferred).
+  - Row elimination when a row is full.
+  - Controls: left/right arrows to move, up arrow to rotate, down arrow for soft drop, space for hard drop, `C` to hold.
+  - Support hold piece and swap logic (one hold per piece drop until locked).
+  - Soft-drop vs hard-drop scoring differences.
+  - T-Spin detection (basic SRS T-spin detection heuristics) and scoring.
+  - Recognize Perfect Clear (board empty after a placement) and award bonus.
+  - Track and display total lines cleared and current score.
+  - Game over when blocks exceed the top (well/ceiling). On game over, show final statistics.
+  - Show real-time pieces-per-second (PPS) metric during play and a real-time chart (PPS vs time) that plots as game progresses.
+  - Provide Restart button and ability to resume via ESC.
+  - Top-right corner settings menu with: Resume (or ESC), Restart, Options.
+    - Options UI should allow changing volume and background style (choose between a few color combinations).
+    - Options UI should have a Back button to return to the main settings menu.
+- UI details:
+  - Show hold area, next queue (at least next 5), score, lines cleared, PPS, and the real-time chart.
+  - Showing "Title of Quad" (i.e., when a Tetris/4-line clear occurs, display a small label for a few seconds).
+  - Show indicators for T-Spin or Perfect Clear when they happen.
+- Persistence & behaviour:
+  - Restart resets the board and metrics.
+  - Resume resumes the paused game.
+- Deliver a single-file implementation `tetris.html` (HTML/CSS/JS) that can be opened in the browser to play.
+
+Notes:
+- Use keyboard events for controls. Keep the UI responsive and mobile-tolerant if possible.
+- Keep code commented and modular so we can tweak scoring/behavior later.
+- If parts of SRS are simplified, document them in comments in the file.

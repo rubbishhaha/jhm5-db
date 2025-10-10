@@ -1,0 +1,686 @@
+
+  <!doctype html>
+  <html lang="en">
+  <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tetris — Play</title>
+  <style>
+    :root{ --bg:#0b1020; --panel:#0f1724; --accent:#00e5ff; --muted:#94a3b8; }
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#071022);font-family:Inter,system-ui,Segoe UI, Roboto, 'Noto Sans', 'Microsoft JhengHei', sans-serif;color:#e6eef6}
+    .container{max-width:1100px;margin:18px auto;padding:14px;display:grid;grid-template-columns: 360px 1fr 320px;gap:16px}
+    .panel{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));padding:14px;border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+    .board{width:320px;height:640px;background:#071127;position:relative;border-radius:6px;padding:8px;box-sizing:border-box}
+    canvas.game{width:100%;height:100%;background:linear-gradient(180deg,#061225,#04101a);display:block}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+    .stat{font-size:14px;margin-bottom:8px}
+    .nexts{display:grid;grid-template-columns:repeat(1,1fr);gap:8px}
+    .hold{height:80px}
+    .top-bar{display:flex;justify-content:space-between;align-items:center}
+    .btn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.03);color:var(--accent);padding:8px 10px;border-radius:8px;cursor:pointer}
+    .small{font-size:13px;color:var(--muted)}
+    /* hud messages */
+    .float-msg{position:absolute;left:50%;transform:translateX(-50%);top:20px;background:rgba(0,0,0,0.45);padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);font-weight:700}
+    /* settings */
+    .settings{position:fixed;right:16px;top:16px;z-index:1200}
+    .settings .gear{background:#071127;border-radius:8px;padding:8px;border:1px solid rgba(255,255,255,0.04);cursor:pointer}
+    .menu{position:fixed;right:16px;top:56px;width:260px;background:var(--panel);padding:12px;border-radius:10px;box-shadow:0 10px 30px rgba(2,6,23,0.5);display:none}
+    .menu.open{display:block}
+    .menu button{display:block;width:100%;margin:6px 0}
+    /* chart */
+    .chart{height:140px}
+    footer{margin-top:18px;color:#93a0b2;font-size:12px;text-align:center}
+
+    /* responsive */
+    @media (max-width:1080px){ .container{grid-template-columns: 1fr;max-width:920px} .board{margin:0 auto} }
+  </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div>
+            <div style="font-weight:700;font-size:18px">TETRIS</div>
+            <div class="small">Use arrows to move, up=rotate, down=soft, space=hard, C=hold</div>
+          </div>
+          <div>
+            <button class="btn" id="restartBtn">Restart</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px">
+          <div style="width:120px">
+            <div class="small">Hold</div>
+            <canvas id="hold" width="120" height="80" style="background:transparent;border-radius:6px"></canvas>
+          </div>
+          <div style="flex:1">
+            <div class="small">Next</div>
+            <div class="nexts" id="nextList"></div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px">
+          <div class="stat">Score: <span id="score">0</span></div>
+          <div class="stat">Lines: <span id="lines">0</span></div>
+          <div class="stat">PPS: <span id="pps">0.00</span></div>
+        </div>
+
+        <div style="margin-top:10px">
+          <div class="small">PPS chart</div>
+          <canvas id="ppsChart" class="chart" width="300" height="140"></canvas>
+        </div>
+
+      </div>
+
+      <div class="panel" style="display:flex;flex-direction:column;align-items:center;">
+        <div class="board" id="boardWrap">
+          <canvas id="gameCanvas" class="game" width="320" height="640"></canvas>
+          <div class="float-msg" id="floatMsg" style="display:none"></div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn" id="pauseBtn">Pause (Esc)</button>
+          <button class="btn" id="softBtn">Soft Drop</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:700">Settings</div>
+          <div class="settings">
+            <div class="gear" id="gear">☰</div>
+            <div class="menu" id="menu">
+              <button class="btn" id="menuResume">Resume (Esc)</button>
+              <button class="btn" id="menuRestart">Restart</button>
+              <button class="btn" id="menuOptions">Options</button>
+              <div id="optionsPanel" style="display:none;margin-top:8px">
+                <div style="margin-bottom:8px">Volume <input id="vol" type="range" min="0" max="1" step="0.01" value="0.6"></div>
+                <div style="margin-bottom:8px">Background style
+                  <select id="bgStyle">
+                    <option value="dark">Dark</option>
+                    <option value="neon">Neon</option>
+                    <option value="sun">Sunset</option>
+                  </select>
+                </div>
+                <button class="btn" id="optionsBack">Back</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px">
+          <div class="small">Game Tips: Try to set up T-spins and hold I-piece for Tetris.</div>
+        </div>
+      </div>
+    </div>
+
+    <footer>Built inline — Controls: ← → / ↑ / ↓ / Space / C — Restart or use menu</footer>
+
+  <script>
+  /*
+    Single-file Tetris implementation (simplified SRS). Key features:
+    - 7-bag randomizer
+    - hold
+    - movement & rotation (basic wall kicks)
+    - soft drop / hard drop
+    - T-spin detection heuristic (corner occupancy)
+    - scoring with T-spin, Tetris, Perfect Clear
+    - PPS calculation and chart
+    - pause/resume, restart, options
+  */
+
+  // --- Utilities
+  function rand(n){ return Math.floor(Math.random()*n); }
+  function deepClone(a){ return JSON.parse(JSON.stringify(a)); }
+
+  // --- Tetromino definitions (4x4 grids) using rotation states
+  const TETROMINO = {
+    I: { color:'#00f0f0', states: [
+      [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+      [[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]],
+      [[0,0,0,0],[0,0,0,0],[1,1,1,1],[0,0,0,0]],
+      [[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]]
+    ]},
+    J: { color:'#0000f0', states: [
+      [[1,0,0],[1,1,1],[0,0,0]],
+      [[0,1,1],[0,1,0],[0,1,0]],
+      [[0,0,0],[1,1,1],[0,0,1]],
+      [[0,1,0],[0,1,0],[1,1,0]]
+    ]},
+    L: { color:'#f0a000', states: [
+      [[0,0,1],[1,1,1],[0,0,0]],
+      [[0,1,0],[0,1,0],[0,1,1]],
+      [[0,0,0],[1,1,1],[1,0,0]],
+      [[1,1,0],[0,1,0],[0,1,0]]
+    ]},
+    O: { color:'#f0f000', states: [
+      [[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]]
+    ]},
+    S: { color:'#00f000', states: [
+      [[0,1,1],[1,1,0],[0,0,0]],
+      [[0,1,0],[0,1,1],[0,0,1]],
+      [[0,0,0],[0,1,1],[1,1,0]],
+      [[1,0,0],[1,1,0],[0,1,0]]
+    ]},
+    Z: { color:'#f00000', states: [
+      [[1,1,0],[0,1,1],[0,0,0]],
+      [[0,0,1],[0,1,1],[0,1,0]],
+      [[0,0,0],[1,1,0],[0,1,1]],
+      [[0,1,0],[1,1,0],[1,0,0]]
+    ]},
+    T: { color:'#a000f0', states:[
+      [[0,1,0],[1,1,1],[0,0,0]],
+      [[0,1,0],[0,1,1],[0,1,0]],
+      [[0,0,0],[1,1,1],[0,1,0]],
+      [[0,1,0],[1,1,0],[0,1,0]]
+    ]}
+  };
+
+  // For convenience unify states to 4x4 matrices (some are 3x3)
+  function normalizeStates(){
+    for(const k of Object.keys(TETROMINO)){
+      TETROMINO[k].states = TETROMINO[k].states.map(st => {
+        const r = st.length;
+        if(r===4) return st;
+        const out = Array.from({length:4},_=>Array(4).fill(0));
+        for(let y=0;y<r;y++) for(let x=0;x<st[y].length;x++) out[y][x] = st[y][x];
+        return out;
+      });
+    }
+  }
+  normalizeStates();
+
+  // --- Game state
+  const COLS = 10, ROWS = 20;
+  let board = Array.from({length:ROWS}, ()=>Array(COLS).fill(0));
+  let bag = [];
+  let nextQueue = [];
+  let holdPiece = null; let holdLocked = false;
+  let current = null; // {type, x,y,rot}
+  let score=0, lines=0;
+  let ppsData = [];
+  let pieceCount = 0; let startTime = null;
+  let running = true; let paused = false; let gameOver=false;
+
+  // scoring table (classic-ish):
+  const SCORE = { single:100, double:300, triple:500, tetris:800, soft:1, hardDrop:2, tspinMini:100, tspin:400, perfectClear:1200 };
+
+  // --- helper: spawn
+  function refillBag(){ bag = ['I','J','L','O','S','T','Z']; for(let i=bag.length-1;i>0;i--){ const j=rand(i+1); [bag[i],bag[j]]=[bag[j],bag[i]]; } }
+  function nextPiece(){ if(bag.length===0) refillBag(); const p = bag.pop(); return p; }
+  function ensureQueue(){ while(nextQueue.length<6) nextQueue.push(nextPiece()); }
+
+  function spawn(){ ensureQueue(); const type=nextQueue.shift(); // push new
+    // initial pos
+    const rot = 0; let x = Math.floor(COLS/2)-2; let y = -1;
+    current = { type, x, y, rot };
+    holdLocked = false;
+    pieceCount++;
+    if(!isValidPosition(current, current.x, current.y, current.rot)){
+      // game over
+      gameOver = true; running=false; paused=false; showFloat('Game Over');
+      try{ playSound('gameover'); }catch(e){}
+    }
+  }
+
+  function isValidPosition(piece,x,y,rot){
+    const states = TETROMINO[piece.type].states;
+    const shape = states[rot % states.length];
+    for(let r=0;r<4;r++) for(let c=0;c<4;c++){
+      if(!shape[r][c]) continue;
+      const bx = x + c; const by = y + r;
+      if(bx<0 || bx>=COLS) return false;
+      if(by>=ROWS) return false;
+      if(by>=0 && board[by][bx]) return false;
+    }
+    return true;
+  }
+
+  // --- SRS wall kicks (simplified canonical tables)
+  // Kicks are arrays of [dx,dy] offsets to try in order for a rotation transition
+  const JLSTZ_KICKS = {
+    '0>1': [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]],
+    '1>0': [[0,0],[1,0],[1,-1],[0,2],[1,2]],
+    '1>2': [[0,0],[1,0],[1,-1],[0,2],[1,2]],
+    '2>1': [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]],
+    '2>3': [[0,0],[1,0],[1,1],[0,-2],[1,-2]],
+    '3>2': [[0,0],[-1,0],[-1,-1],[0,2],[-1,2]],
+    '3>0': [[0,0],[-1,0],[-1,-1],[0,2],[-1,2]],
+    '0>3': [[0,0],[1,0],[1,1],[0,-2],[1,-2]]
+  };
+  const I_KICKS = {
+    '0>1': [[0,0],[-2,0],[1,0],[-2,-1],[1,2]],
+    '1>0': [[0,0],[2,0],[-1,0],[2,1],[-1,-2]],
+    '1>2': [[0,0],[-1,0],[2,0],[-1,2],[2,-1]],
+    '2>1': [[0,0],[1,0],[-2,0],[1,-2],[-2,1]],
+    '2>3': [[0,0],[2,0],[-1,0],[2,1],[-1,-2]],
+    '3>2': [[0,0],[-2,0],[1,0],[-2,-1],[1,2]],
+    '3>0': [[0,0],[1,0],[-2,0],[1,-2],[-2,1]],
+    '0>3': [[0,0],[-1,0],[2,0],[-1,2],[2,-1]]
+  };
+
+  function getKickList(type, from, to){
+    const key = `${from}>${to}`;
+    if(type==='I') return I_KICKS[key] || [[0,0]];
+    if(type==='O') return [[0,0]]; // O has no kicks in SRS (it just shifts visually)
+    return JLSTZ_KICKS[key] || [[0,0]];
+  }
+
+  // rotate using SRS kicks
+  function rotate(dir){
+    if(!current) return false;
+    const from = current.rot % 4;
+    const to = (current.rot + dir + 4) % 4;
+    const kicks = getKickList(current.type, from, to);
+    for(const k of kicks){
+      const nx = current.x + k[0];
+      const ny = current.y + k[1];
+      if(isValidPosition(current, nx, ny, to)){
+        current.rot = to;
+        current.x = nx;
+        current.y = ny;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function lockPiece(){
+    if(!current) return;
+    const shape = TETROMINO[current.type].states[current.rot%TETROMINO[current.type].states.length];
+    for(let r=0;r<4;r++) for(let c=0;c<4;c++){
+      if(!shape[r][c]) continue; const bx = current.x+c; const by = current.y+r; if(by>=0 && by<ROWS && bx>=0 && bx<COLS) board[by][bx] = current.type;
+    }
+    holdLocked = false;
+
+    // clear lines
+    const cleared = clearLines();
+    // T-spin detection basic
+    const tspin = detectTSpin(current);
+    // perfect clear
+    const perfect = checkPerfectClear();
+
+    // scoring and sounds
+    if(tspin){
+      // T-Spin (mini or normal)
+      if(cleared>0){ score += SCORE.tspin * cleared; showTransient('T-Spin', '#ff7ad1'); }
+      else { score += SCORE.tspinMini; showTransient('T-Spin', '#ff7ad1'); }
+      try{ playSound('tspin'); }catch(e){}
+    } else if(cleared>0){
+      // normal clears
+      if(perfect){ score += SCORE.perfectClear; showTransient('Perfect Clear', '#ffd700'); }
+      else if(cleared===4){ score+=SCORE.tetris; showTransient('TETRIS', '#55ffcc'); }
+      else if(cleared===3) score+=SCORE.triple;
+      else if(cleared===2) score+=SCORE.double;
+      else score+=SCORE.single;
+      try{ playSound('clear'); }catch(e){}
+    } else {
+      // no clear, regular lock (play drop sound handled by hardDrop when applicable)
+    }
+
+    // update lines
+    if(cleared>0) lines += cleared;
+
+    // update PPS data
+    const now = Date.now(); const elapsed = (now - startTime)/1000; const pps = pieceCount / Math.max(1, elapsed); ppsData.push({t: now-startTime, pps});
+    // spawn next
+    current=null; spawn();
+  }
+
+  // --- Audio (simple WebAudio synth)
+  let audioCtx = null; let masterGain = null;
+  function ensureAudio(){ if(audioCtx) return; audioCtx = new (window.AudioContext||window.webkitAudioContext)(); masterGain = audioCtx.createGain(); masterGain.gain.value = Number(document.getElementById('vol').value||0.6); masterGain.connect(audioCtx.destination); }
+  function playSound(type='click'){ try{ ensureAudio(); const now=audioCtx.currentTime; const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); if(type==='drop'){ o.type='sawtooth'; o.frequency.setValueAtTime(180, now); g.gain.setValueAtTime(0.08, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.2); }
+    else if(type==='clear'){ o.type='triangle'; o.frequency.setValueAtTime(440, now); g.gain.setValueAtTime(0.12, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.3); }
+    else if(type==='tspin'){ o.type='square'; o.frequency.setValueAtTime(660, now); g.gain.setValueAtTime(0.14, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.35); }
+    else if(type==='gameover'){ o.type='sine'; o.frequency.setValueAtTime(110, now); g.gain.setValueAtTime(0.18, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.8); }
+    else { o.type='sine'; o.frequency.setValueAtTime(440, now); g.gain.setValueAtTime(0.04, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.12); }
+    o.connect(g); g.connect(masterGain); o.start(now); o.stop(now+1); }catch(e){/*ignore*/} }
+
+  // wire volume control
+  document.getElementById('vol').addEventListener('input', e=>{ if(!masterGain) ensureAudio(); masterGain.gain.value = Number(e.target.value); });
+
+  function clearLines(){ let newBoard=[]; let cleared=0; for(let r=0;r<ROWS;r++){ if(board[r].every(x=>x)) cleared++; else newBoard.push(board[r]); } while(newBoard.length<ROWS) newBoard.unshift(Array(COLS).fill(0)); board=newBoard; return cleared; }
+
+  function detectTSpin(piece){ if(piece.type!=='T') return false; // simple heuristic: if rotated and three of four corners occupied
+    const px = piece.x, py = piece.y; const rot = piece.rot%4; const shape = TETROMINO.T.states[rot]; // corners relative to piece box
+    const corners = [ [px,py],[px+2,py],[px,py+2],[px+2,py+2] ]; let occ=0; for(const c of corners){ const x=c[0], y=c[1]; if(x<0||x>=COLS||y<0||y>=ROWS || (y>=0 && board[y][x])) occ++; }
+    return occ>=3;
+  }
+
+  function checkPerfectClear(){ return board.every(row => row.every(c=>!c)); }
+
+  // movement
+  function move(dx){ if(!current) return; if(isValidPosition(current,current.x+dx,current.y,current.rot)) current.x+=dx; }
+  function softDrop(){ if(!current) return; if(isValidPosition(current,current.x,current.y+1,current.rot)){ current.y+=1; score+=SCORE.soft; } else { lockPiece(); } }
+  function hardDrop(){ if(!current) return; let d=0; while(isValidPosition(current,current.x,current.y+1,current.rot)){ current.y++; d++; } score+=d*SCORE.hardDrop; try{ playSound('drop'); }catch(e){} lockPiece(); }
+
+  // hold
+  function doHold(){ if(!current) return; if(holdLocked) return; const was = holdPiece; holdPiece = current.type; if(!was){ current=null; spawn(); } else { current = { type:was, x:Math.floor(COLS/2)-2, y:-1, rot:0 }; if(!isValidPosition(current,current.x,current.y,current.rot)){ gameOver=true; running=false; showFloat('Game Over'); } }
+    holdLocked=true;
+  }
+
+  // --- rendering
+  const gameCanvas = document.getElementById('gameCanvas'); const ctx = gameCanvas.getContext('2d');
+  const cellW = gameCanvas.width / COLS, cellH = gameCanvas.height / ROWS;
+
+  function draw(){ // clear
+    ctx.clearRect(0,0,gameCanvas.width,gameCanvas.height);
+    // draw grid
+    ctx.fillStyle='#061225'; ctx.fillRect(0,0,gameCanvas.width,gameCanvas.height);
+    // draw board blocks
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){ const v=board[r][c]; if(v){ ctx.fillStyle=TETROMINO[v].color; ctx.fillRect(c*cellW, r*cellH, cellW-1, cellH-1); } }
+    // draw current
+    if(current){ const shape = TETROMINO[current.type].states[current.rot%TETROMINO[current.type].states.length]; for(let r=0;r<4;r++) for(let c=0;c<4;c++){ if(!shape[r][c]) continue; const x=current.x+c, y=current.y+r; if(y>=0){ ctx.fillStyle=TETROMINO[current.type].color; ctx.fillRect(x*cellW, y*cellH, cellW-1, cellH-1); } } }
+  }
+
+  // hold and next rendering
+  const holdCanvas=document.getElementById('hold'); const hctx=holdCanvas.getContext('2d');
+  function renderHold(){ hctx.clearRect(0,0,holdCanvas.width,holdCanvas.height); if(!holdPiece) return; const col=TETROMINO[holdPiece].color; hctx.fillStyle=col; hctx.fillRect(12,12,24,24); hctx.font='12px sans-serif'; hctx.fillText(holdPiece, 40,28); }
+
+  function renderNexts(){ const cont=document.getElementById('nextList'); cont.innerHTML=''; for(let i=0;i<5;i++){ const t = nextQueue[i] || ''; const el = document.createElement('div'); el.style.padding='6px'; el.style.background='rgba(255,255,255,0.02)'; el.style.borderRadius='6px'; el.style.height='40px'; el.style.display='flex'; el.style.alignItems='center'; el.style.justifyContent='center'; el.style.fontWeight='700'; el.style.color='#cfe'; el.textContent=t; cont.appendChild(el); } }
+
+  // pps chart
+  const ppsCanvas = document.getElementById('ppsChart'); const pctx = ppsCanvas.getContext('2d');
+  function drawPPS(){ pctx.clearRect(0,0,ppsCanvas.width,ppsCanvas.height); pctx.fillStyle='#041022'; pctx.fillRect(0,0,ppsCanvas.width,ppsCanvas.height);
+    pctx.strokeStyle='#00e5ff'; pctx.beginPath(); const W=ppsCanvas.width, H=ppsCanvas.height; const max = Math.max(1, ...ppsData.map(d=>d.pps)); for(let i=0;i<ppsData.length;i++){ const x = (i/(Math.max(1,ppsData.length-1)))*W; const y = H - (ppsData[i].pps/max)*H; if(i===0) pctx.moveTo(x,y); else pctx.lineTo(x,y); } pctx.stroke(); }
+
+  // messages
+  function showFloat(msg){ const el=document.getElementById('floatMsg'); el.textContent=msg; el.style.display='block'; setTimeout(()=>el.style.display='none',2000); }
+  function showTransient(msg,color='#88f'){ showFloat(msg); }
+
+  // game loop
+  let lastTick = 0; const gravity = 500; // ms per step
+  function tick(ts){ if(!running || paused) { lastTick=ts; requestAnimationFrame(tick); draw(); renderHold(); renderNexts(); drawPPS(); return; }
+    if(!startTime) startTime=Date.now(); if(!current) spawn();
+    if(!lastTick) lastTick=ts; if(ts - lastTick >= gravity){ softDrop(); lastTick = ts; }
+    draw(); renderHold(); renderNexts(); drawPPS();
+    // update HUD
+    document.getElementById('score').textContent = score;
+    document.getElementById('lines').textContent = lines;
+    const elapsed=(Date.now()-startTime)/1000; const pps = pieceCount/Math.max(1,elapsed); document.getElementById('pps').textContent = pps.toFixed(2);
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  // input handling
+  const keysDown = {};
+  document.addEventListener('keydown', e=>{
+    if(e.key==='Escape'){ paused=!paused; document.getElementById('menu').classList.toggle('open', paused); return; }
+    if(paused) return;
+    if(e.key==='ArrowLeft'){ move(-1); }
+    if(e.key==='ArrowRight'){ move(1); }
+    if(e.key==='ArrowUp'){ rotate(1); }
+    if(e.key==='ArrowDown'){ softDrop(); }
+    if(e.code==='Space'){ e.preventDefault(); hardDrop(); }
+    if(e.key.toLowerCase()==='c'){ doHold(); }
+  });
+
+  // UI wiring
+  document.getElementById('restartBtn').addEventListener('click', ()=>{ location.reload(); });
+  document.getElementById('pauseBtn').addEventListener('click', ()=>{ paused=!paused; document.getElementById('menu').classList.toggle('open', paused); });
+  document.getElementById('softBtn').addEventListener('click', ()=>{ softDrop(); });
+
+  // gear and menu
+  const gear = document.getElementById('gear'); gear.addEventListener('click', ()=>{ document.getElementById('menu').classList.toggle('open'); paused = document.getElementById('menu').classList.contains('open'); });
+  document.getElementById('menuResume').addEventListener('click', ()=>{ document.getElementById('menu').classList.remove('open'); paused=false; });
+  document.getElementById('menuRestart').addEventListener('click', ()=>{ location.reload(); });
+  document.getElementById('menuOptions').addEventListener('click', ()=>{ document.getElementById('optionsPanel').style.display='block'; });
+  document.getElementById('optionsBack').addEventListener('click', ()=>{ document.getElementById('optionsPanel').style.display='none'; });
+
+  // volume & style
+  document.getElementById('vol').addEventListener('input', e=>{ /* placeholder */ });
+  document.getElementById('bgStyle').addEventListener('change', e=>{ const v=e.target.value; if(v==='dark'){ document.documentElement.style.setProperty('--bg','#0b1020'); document.documentElement.style.setProperty('--panel','#0f1724'); } else if(v==='neon'){ document.documentElement.style.setProperty('--bg','#04121f'); document.documentElement.style.setProperty('--panel','#081526'); } else if(v==='sun'){ document.documentElement.style.setProperty('--bg','#202020'); document.documentElement.style.setProperty('--panel','#2a1b2b'); } });
+
+  // initialize
+  refillBag(); ensureQueue(); spawn(); startTime=Date.now();
+
+  </script>
+  </body>
+  </html>
+
+const COLS = 10, ROWS = 20;
+let board = Array.from({length:ROWS}, ()=>Array(COLS).fill(0));
+let bag = [];
+let nextQueue = [];
+let holdPiece = null; let holdLocked = false;
+let current = null; // {type, x,y,rot}
+let score=0, lines=0;
+let ppsData = [];
+let pieceCount = 0; let startTime = null;
+let running = true; let paused = false; let gameOver=false;
+
+// scoring table (classic-ish):
+const SCORE = { single:100, double:300, triple:500, tetris:800, soft:1, hardDrop:2, tspinMini:100, tspin:400, perfectClear:1200 };
+
+// --- helper: spawn
+function refillBag(){ bag = ['I','J','L','O','S','T','Z']; for(let i=bag.length-1;i>0;i--){ const j=rand(i+1); [bag[i],bag[j]]=[bag[j],bag[i]]; } }
+function nextPiece(){ if(bag.length===0) refillBag(); const p = bag.pop(); return p; }
+function ensureQueue(){ while(nextQueue.length<6) nextQueue.push(nextPiece()); }
+
+function spawn(){ ensureQueue(); const type=nextQueue.shift(); // push new
+  // initial pos
+  const rot = 0; let x = Math.floor(COLS/2)-2; let y = -1;
+  current = { type, x, y, rot };
+  holdLocked = false;
+  pieceCount++;
+  if(!isValidPosition(current, current.x, current.y, current.rot)){
+    // game over
+    gameOver = true; running=false; paused=false; showFloat('Game Over');
+    try{ playSound('gameover'); }catch(e){}
+  }
+}
+
+function isValidPosition(piece,x,y,rot){
+  const states = TETROMINO[piece.type].states;
+  const shape = states[rot % states.length];
+  for(let r=0;r<4;r++) for(let c=0;c<4;c++){
+    if(!shape[r][c]) continue;
+    const bx = x + c; const by = y + r;
+    if(bx<0 || bx>=COLS) return false;
+    if(by>=ROWS) return false;
+    if(by>=0 && board[by][bx]) return false;
+  }
+  return true;
+}
+
+// --- SRS wall kicks (simplified canonical tables)
+// Kicks are arrays of [dx,dy] offsets to try in order for a rotation transition
+const JLSTZ_KICKS = {
+  '0>1': [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]],
+  '1>0': [[0,0],[1,0],[1,-1],[0,2],[1,2]],
+  '1>2': [[0,0],[1,0],[1,-1],[0,2],[1,2]],
+  '2>1': [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]],
+  '2>3': [[0,0],[1,0],[1,1],[0,-2],[1,-2]],
+  '3>2': [[0,0],[-1,0],[-1,-1],[0,2],[-1,2]],
+  '3>0': [[0,0],[-1,0],[-1,-1],[0,2],[-1,2]],
+  '0>3': [[0,0],[1,0],[1,1],[0,-2],[1,-2]]
+};
+const I_KICKS = {
+  '0>1': [[0,0],[-2,0],[1,0],[-2,-1],[1,2]],
+  '1>0': [[0,0],[2,0],[-1,0],[2,1],[-1,-2]],
+  '1>2': [[0,0],[-1,0],[2,0],[-1,2],[2,-1]],
+  '2>1': [[0,0],[1,0],[-2,0],[1,-2],[-2,1]],
+  '2>3': [[0,0],[2,0],[-1,0],[2,1],[-1,-2]],
+  '3>2': [[0,0],[-2,0],[1,0],[-2,-1],[1,2]],
+  '3>0': [[0,0],[1,0],[-2,0],[1,-2],[-2,1]],
+  '0>3': [[0,0],[-1,0],[2,0],[-1,2],[2,-1]]
+};
+
+function getKickList(type, from, to){
+  const key = `${from}>${to}`;
+  if(type==='I') return I_KICKS[key] || [[0,0]];
+  if(type==='O') return [[0,0]]; // O has no kicks in SRS (it just shifts visually)
+  return JLSTZ_KICKS[key] || [[0,0]];
+}
+
+// rotate using SRS kicks
+function rotate(dir){
+  if(!current) return false;
+  const from = current.rot % 4;
+  const to = (current.rot + dir + 4) % 4;
+  const kicks = getKickList(current.type, from, to);
+  for(const k of kicks){
+    const nx = current.x + k[0];
+    const ny = current.y + k[1];
+    if(isValidPosition(current, nx, ny, to)){
+      current.rot = to;
+      current.x = nx;
+      current.y = ny;
+      return true;
+    }
+  }
+  return false;
+}
+
+function lockPiece(){
+  if(!current) return;
+  const shape = TETROMINO[current.type].states[current.rot%TETROMINO[current.type].states.length];
+  for(let r=0;r<4;r++) for(let c=0;c<4;c++){
+    if(!shape[r][c]) continue; const bx = current.x+c; const by = current.y+r; if(by>=0 && by<ROWS && bx>=0 && bx<COLS) board[by][bx] = current.type;
+  }
+  holdLocked = false;
+
+  // clear lines
+  const cleared = clearLines();
+  // T-spin detection basic
+  const tspin = detectTSpin(current);
+  // perfect clear
+  const perfect = checkPerfectClear();
+
+  // scoring and sounds
+  if(tspin){
+    // T-Spin (mini or normal)
+    if(cleared>0){ score += SCORE.tspin * cleared; showTransient('T-Spin', '#ff7ad1'); }
+    else { score += SCORE.tspinMini; showTransient('T-Spin', '#ff7ad1'); }
+    try{ playSound('tspin'); }catch(e){}
+  } else if(cleared>0){
+    // normal clears
+    if(perfect){ score += SCORE.perfectClear; showTransient('Perfect Clear', '#ffd700'); }
+    else if(cleared===4){ score+=SCORE.tetris; showTransient('TETRIS', '#55ffcc'); }
+    else if(cleared===3) score+=SCORE.triple;
+    else if(cleared===2) score+=SCORE.double;
+    else score+=SCORE.single;
+    try{ playSound('clear'); }catch(e){}
+  } else {
+    // no clear, regular lock (play drop sound handled by hardDrop when applicable)
+  }
+
+  // update lines
+  if(cleared>0) lines += cleared;
+
+  // update PPS data
+  const now = Date.now(); const elapsed = (now - startTime)/1000; const pps = pieceCount / Math.max(1, elapsed); ppsData.push({t: now-startTime, pps});
+  // spawn next
+  current=null; spawn();
+}
+
+// --- Audio (simple WebAudio synth)
+let audioCtx = null; let masterGain = null;
+function ensureAudio(){ if(audioCtx) return; audioCtx = new (window.AudioContext||window.webkitAudioContext)(); masterGain = audioCtx.createGain(); masterGain.gain.value = Number(document.getElementById('vol').value||0.6); masterGain.connect(audioCtx.destination); }
+function playSound(type='click'){ try{ ensureAudio(); const now=audioCtx.currentTime; const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); if(type==='drop'){ o.type='sawtooth'; o.frequency.setValueAtTime(180, now); g.gain.setValueAtTime(0.08, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.2); }
+  else if(type==='clear'){ o.type='triangle'; o.frequency.setValueAtTime(440, now); g.gain.setValueAtTime(0.12, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.3); }
+  else if(type==='tspin'){ o.type='square'; o.frequency.setValueAtTime(660, now); g.gain.setValueAtTime(0.14, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.35); }
+  else if(type==='gameover'){ o.type='sine'; o.frequency.setValueAtTime(110, now); g.gain.setValueAtTime(0.18, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.8); }
+  else { o.type='sine'; o.frequency.setValueAtTime(440, now); g.gain.setValueAtTime(0.04, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.12); }
+  o.connect(g); g.connect(masterGain); o.start(now); o.stop(now+1); }catch(e){/*ignore*/} }
+
+// wire volume control
+document.getElementById('vol').addEventListener('input', e=>{ if(!masterGain) ensureAudio(); masterGain.gain.value = Number(e.target.value); });
+
+function clearLines(){ let newBoard=[]; let cleared=0; for(let r=0;r<ROWS;r++){ if(board[r].every(x=>x)) cleared++; else newBoard.push(board[r]); } while(newBoard.length<ROWS) newBoard.unshift(Array(COLS).fill(0)); board=newBoard; return cleared; }
+
+function detectTSpin(piece){ if(piece.type!=='T') return false; // simple heuristic: if rotated and three of four corners occupied
+  const px = piece.x, py = piece.y; const rot = piece.rot%4; const shape = TETROMINO.T.states[rot]; // corners relative to piece box
+  const corners = [ [px,py],[px+2,py],[px,py+2],[px+2,py+2] ]; let occ=0; for(const c of corners){ const x=c[0], y=c[1]; if(x<0||x>=COLS||y<0||y>=ROWS || (y>=0 && board[y][x])) occ++; }
+  return occ>=3;
+}
+
+function checkPerfectClear(){ return board.every(row => row.every(c=>!c)); }
+
+// movement
+function move(dx){ if(!current) return; if(isValidPosition(current,current.x+dx,current.y,current.rot)) current.x+=dx; }
+function softDrop(){ if(!current) return; if(isValidPosition(current,current.x,current.y+1,current.rot)){ current.y+=1; score+=SCORE.soft; } else { lockPiece(); } }
+function hardDrop(){ if(!current) return; let d=0; while(isValidPosition(current,current.x,current.y+1,current.rot)){ current.y++; d++; } score+=d*SCORE.hardDrop; try{ playSound('drop'); }catch(e){} lockPiece(); }
+
+// hold
+function doHold(){ if(!current) return; if(holdLocked) return; const was = holdPiece; holdPiece = current.type; if(!was){ current=null; spawn(); } else { current = { type:was, x:Math.floor(COLS/2)-2, y:-1, rot:0 }; if(!isValidPosition(current,current.x,current.y,current.rot)){ gameOver=true; running=false; showFloat('Game Over'); } }
+  holdLocked=true;
+}
+
+// --- rendering
+const gameCanvas = document.getElementById('gameCanvas'); const ctx = gameCanvas.getContext('2d');
+const cellW = gameCanvas.width / COLS, cellH = gameCanvas.height / ROWS;
+
+function draw(){ // clear
+  ctx.clearRect(0,0,gameCanvas.width,gameCanvas.height);
+  // draw grid
+  ctx.fillStyle='#061225'; ctx.fillRect(0,0,gameCanvas.width,gameCanvas.height);
+  // draw board blocks
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){ const v=board[r][c]; if(v){ ctx.fillStyle=TETROMINO[v].color; ctx.fillRect(c*cellW, r*cellH, cellW-1, cellH-1); } }
+  // draw current
+  if(current){ const shape = TETROMINO[current.type].states[current.rot%TETROMINO[current.type].states.length]; for(let r=0;r<4;r++) for(let c=0;c<4;c++){ if(!shape[r][c]) continue; const x=current.x+c, y=current.y+r; if(y>=0){ ctx.fillStyle=TETROMINO[current.type].color; ctx.fillRect(x*cellW, y*cellH, cellW-1, cellH-1); } } }
+}
+
+// hold and next rendering
+const holdCanvas=document.getElementById('hold'); const hctx=holdCanvas.getContext('2d');
+function renderHold(){ hctx.clearRect(0,0,holdCanvas.width,holdCanvas.height); if(!holdPiece) return; const col=TETROMINO[holdPiece].color; hctx.fillStyle=col; hctx.fillRect(12,12,24,24); hctx.font='12px sans-serif'; hctx.fillText(holdPiece, 40,28); }
+
+function renderNexts(){ const cont=document.getElementById('nextList'); cont.innerHTML=''; for(let i=0;i<5;i++){ const t = nextQueue[i] || ''; const el = document.createElement('div'); el.style.padding='6px'; el.style.background='rgba(255,255,255,0.02)'; el.style.borderRadius='6px'; el.style.height='40px'; el.style.display='flex'; el.style.alignItems='center'; el.style.justifyContent='center'; el.style.fontWeight='700'; el.style.color='#cfe'; el.textContent=t; cont.appendChild(el); } }
+
+// pps chart
+const ppsCanvas = document.getElementById('ppsChart'); const pctx = ppsCanvas.getContext('2d');
+function drawPPS(){ pctx.clearRect(0,0,ppsCanvas.width,ppsCanvas.height); pctx.fillStyle='#041022'; pctx.fillRect(0,0,ppsCanvas.width,ppsCanvas.height);
+  pctx.strokeStyle='#00e5ff'; pctx.beginPath(); const W=ppsCanvas.width, H=ppsCanvas.height; const max = Math.max(1, ...ppsData.map(d=>d.pps)); for(let i=0;i<ppsData.length;i++){ const x = (i/(Math.max(1,ppsData.length-1)))*W; const y = H - (ppsData[i].pps/max)*H; if(i===0) pctx.moveTo(x,y); else pctx.lineTo(x,y); } pctx.stroke(); }
+
+// messages
+function showFloat(msg){ const el=document.getElementById('floatMsg'); el.textContent=msg; el.style.display='block'; setTimeout(()=>el.style.display='none',2000); }
+function showTransient(msg,color='#88f'){ showFloat(msg); }
+
+// game loop
+let lastTick = 0; const gravity = 500; // ms per step
+function tick(ts){ if(!running || paused) { lastTick=ts; requestAnimationFrame(tick); draw(); renderHold(); renderNexts(); drawPPS(); return; }
+  if(!startTime) startTime=Date.now(); if(!current) spawn();
+  if(!lastTick) lastTick=ts; if(ts - lastTick >= gravity){ softDrop(); lastTick = ts; }
+  draw(); renderHold(); renderNexts(); drawPPS();
+  // update HUD
+  document.getElementById('score').textContent = score;
+  document.getElementById('lines').textContent = lines;
+  const elapsed=(Date.now()-startTime)/1000; const pps = pieceCount/Math.max(1,elapsed); document.getElementById('pps').textContent = pps.toFixed(2);
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+// input handling
+const keysDown = {};
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){ paused=!paused; document.getElementById('menu').classList.toggle('open', paused); return; }
+  if(paused) return;
+  if(e.key==='ArrowLeft'){ move(-1); }
+  if(e.key==='ArrowRight'){ move(1); }
+  if(e.key==='ArrowUp'){ rotate(1); }
+  if(e.key==='ArrowDown'){ softDrop(); }
+  if(e.code==='Space'){ e.preventDefault(); hardDrop(); }
+  if(e.key.toLowerCase()==='c'){ doHold(); }
+});
+
+// UI wiring
+document.getElementById('restartBtn').addEventListener('click', ()=>{ location.reload(); });
+document.getElementById('pauseBtn').addEventListener('click', ()=>{ paused=!paused; document.getElementById('menu').classList.toggle('open', paused); });
+document.getElementById('softBtn').addEventListener('click', ()=>{ softDrop(); });
+
+// gear and menu
+const gear = document.getElementById('gear'); gear.addEventListener('click', ()=>{ document.getElementById('menu').classList.toggle('open'); paused = document.getElementById('menu').classList.contains('open'); });
+document.getElementById('menuResume').addEventListener('click', ()=>{ document.getElementById('menu').classList.remove('open'); paused=false; });
+document.getElementById('menuRestart').addEventListener('click', ()=>{ location.reload(); });
+document.getElementById('menuOptions').addEventListener('click', ()=>{ document.getElementById('optionsPanel').style.display='block'; });
+document.getElementById('optionsBack').addEventListener('click', ()=>{ document.getElementById('optionsPanel').style.display='none'; });
+
+// volume & style
+document.getElementById('vol').addEventListener('input', e=>{ /* placeholder */ });
+document.getElementById('bgStyle').addEventListener('change', e=>{ const v=e.target.value; if(v==='dark'){ document.documentElement.style.setProperty('--bg','#0b1020'); document.documentElement.style.setProperty('--panel','#0f1724'); } else if(v==='neon'){ document.documentElement.style.setProperty('--bg','#04121f'); document.documentElement.style.setProperty('--panel','#081526'); } else if(v==='sun'){ document.documentElement.style.setProperty('--bg','#202020'); document.documentElement.style.setProperty('--panel','#2a1b2b'); } });
+
+// initialize
+refillBag(); ensureQueue(); spawn(); startTime=Date.now();
+
+</script>
+</body>
+</html>

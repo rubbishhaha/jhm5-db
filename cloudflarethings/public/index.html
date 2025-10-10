@@ -104,11 +104,13 @@ body { margin: 0; font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
 </head>
 
 <body>
+  <!-- NOTE: more-button and side-panel behavior is duplicated in past-papers.html. If you modify the more-menu, update both files. -->
   <button class="more-button" id="moreBtn" aria-label="更多選單">⋯</button>
   <div class="side-panel box" id="sidePanel">
     <h3>選單</h3>
     <a href="/index.html">首頁</a><br/>
-    <a href="/past-papers.html">資源</a>
+    <a href="/past-papers.html">資源</a><br/>
+    <a href="/timetable.html">Timetable</a>
   </div>
 
   <div class="page">
@@ -128,21 +130,21 @@ body { margin: 0; font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
     <div class="cols">
       <section class="box chart-box">
         <h2>表格 1 - 累積趨勢</h2>
-        <div class="controls">群組: <select id="cohort1"><option value="all_total">All Total</option><option value="all_male">All Male</option><option value="all_female">All Female</option></select></div>
+  <div class="controls">群組: <select id="cohort1"><option value="all_male">all_male</option><option value="all_female">all_female</option><option value="all_total" selected>all_total</option></select></div>
         <canvas id="chart1"></canvas>
         <div id="analysis1" class="analysis"></div>
       </section>
 
       <section class="box chart-box">
         <h2>表格 2 - 累積趨勢</h2>
-        <div class="controls">群組: <select id="cohort2"><option value="all_total">All Total</option><option value="all_male">All Male</option><option value="all_female">All Female</option></select></div>
+  <div class="controls">群組: <select id="cohort2"><option value="all_male">all_male</option><option value="all_female">all_female</option><option value="all_total" selected>all_total</option></select></div>
         <canvas id="chart2"></canvas>
         <div id="analysis2" class="analysis"></div>
       </section>
 
       <section class="box chart-box">
         <h2>表格 3 - 累積趨勢</h2>
-        <div class="controls">群組: <select id="cohort3"><option value="all_total">All Total</option><option value="all_male">All Male</option><option value="all_female">All Female</option></select></div>
+  <div class="controls">群組: <select id="cohort3"><option value="all_male">all_male</option><option value="all_female">all_female</option><option value="all_total" selected>all_total</option></select></div>
         <canvas id="chart3"></canvas>
         <div id="analysis3" class="analysis"></div>
       </section>
@@ -165,7 +167,7 @@ body { margin: 0; font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
 
     function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    const ALLOWED_COHORTS = new Set(['day_total','day_male','day_female','all_total','all_male','all_female']);
+  const ALLOWED_COHORTS = new Set(['all_total','all_male','all_female']);
     const ALLOWED_TABLES = ['sheet1','sheet2','sheet3'];
 
     async function postSQL(query){
@@ -342,33 +344,28 @@ body { margin: 0; font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
       const cohort = ALLOWED_COHORTS.has(sel.value) ? sel.value : 'all_total';
       try{
         const rows = await fetchD1RowsSafe(table, cohort);
-  if(!rows || rows.length === 0){ if(window._sheetCharts[n]){ window._sheetCharts[n].destroy(); delete window._sheetCharts[n]; } analysisEl.textContent = '（無提示）'; return; }
+        if(!rows || rows.length === 0){ if(window._sheetCharts[n]){ window._sheetCharts[n].destroy(); delete window._sheetCharts[n]; } analysisEl.textContent = '（無提示）'; return; }
         const labels = rows.map(r=>r.label);
         const vals = rows.map(r=>Number(r.value)||0);
-        const cum = []; let s=0; for(const v of vals){ s+=v; cum.push(s); }
+        // 不再累加，只用原始資料
         const ctx = canvas.getContext('2d'); if(window._sheetCharts[n]) window._sheetCharts[n].destroy();
         window._sheetCharts[n] = new Chart(ctx,{
-          type:'line', data:{ labels, datasets:[{ label:`累積 (${cohort})`, data:cum, borderColor:'#1976d2', backgroundColor:'rgba(25,118,210,0.12)', fill:true, tension:0.25, pointRadius:1, borderWidth:2 }] },
+          type:'line', data:{ labels, datasets:[{ label:`${cohort}`, data:vals, borderColor:'#1976d2', backgroundColor:'rgba(25,118,210,0.12)', fill:true, tension:0.25, pointRadius:1, borderWidth:2 }] },
           options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ display:false } }, interaction:{ mode:'nearest', axis:'x', intersect:false }, layout:{ padding:{ top:8,right:8,bottom:28,left:8 } }, scales:{ x:{ ticks:{ autoSkip:true, maxRotation:0, maxTicksLimit:10, align:'center' }, grid:{ color:'rgba(0,0,0,0.03)' } }, y:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,0.03)' } } } }
         });
-        
-
         // fetch prompt and show
         (async ()=>{
           const prompt = await fetchPromptFor(table);
           if(analysisEl){
             if(prompt && prompt.trim().length>0){
-              // render markdown safely then animate visible typing of the plain text
-              // render and type with markdown-aware typing
               setTimeout(()=>typingEffectMarkdown(analysisEl, prompt), 600);
-              // fallback ensure: if typing cancelled or failed, render static markdown
               setTimeout(()=>{ if(!analysisEl.textContent || analysisEl.textContent.trim()==='') analysisEl.innerHTML = renderMarkdown(prompt); }, 4000);
             } else {
               analysisEl.textContent = '（無提示）';
             }
           }
         })();
-  }catch(err){ console.warn(err); }
+      }catch(err){ console.warn(err); }
     }
 
     // main trend chart: fetch and render trendChart

@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>DSE Timetable 2026</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .page{ padding:24px }
+    .subject-grid{ display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:14px; max-width:1200px; margin-top:18px }
+    .subject-card{ background:#fff; padding:12px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.06) }
+    .subject-time{ font-weight:700; color:#0b7285 }
+    .back{ display:inline-block; margin-top:12px }
+  </style>
+</head>
+<body>
+  <!-- more-button copied from index.html; if you edit more-menu, update index.html and past-papers.html as well -->
+  <button class="more-button" id="moreBtn" aria-label="更多選單">⋯</button>
+  <div class="side-panel box" id="sidePanel">
+    <h3>選單</h3>
+    <a href="/index.html">首頁</a><br/>
+    <a href="/past-papers.html">資源</a><br/>
+    <a href="/timetable.html">Timetable</a>
+  </div>
+
+  <div class="page">
+    <h1>2026 DSE Timetable</h1>
+    <p>以下為根據 2026 DSE 時間表定的科目與開考時間。</p>
+
+    <div class="subject-grid">
+      <!-- 2026 DSE timetable extracted entries -->
+      <div class="subject-card">
+        <div class="subject-title">Visual Arts 1,2 / 視覺藝術（一）及（二）</div>
+        <div class="subject-time">2026-04-08 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 12:30</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Chinese Language 1 / 中國語文（一）</div>
+        <div class="subject-time">2026-04-09 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:00</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Chinese Language 2 / 中國語文（二）</div>
+        <div class="subject-time">2026-04-09 10:45</div>
+        <div class="subject-desc">Duration: 10:45 - 13:00</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">English Language 1 / 英國語文（一）</div>
+        <div class="subject-time">2026-04-10 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:00</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">English Language 2 / 英國語文（二）</div>
+        <div class="subject-time">2026-04-10 11:00</div>
+        <div class="subject-desc">Duration: 11:00 - 13:00</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">English Language 3 (Listening and Integrated Skills) / 英國語文（三）</div>
+        <div class="subject-time">2026-04-11 09:15</div>
+        <div class="subject-desc">Duration: 09:15 - 12:10 (note: *)</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Mathematics Compulsory Part 1 / 數學 必修部分（一）</div>
+        <div class="subject-time">2026-04-13 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:45</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Mathematics Compulsory Part 2 / 數學 必修部分（二）</div>
+        <div class="subject-time">2026-04-13 11:30</div>
+        <div class="subject-desc">Duration: 11:30 - 12:45</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Citizenship and Social Development / 公民與社會發展</div>
+        <div class="subject-time">2026-04-14 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:30</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Ethics & Religious Studies 1 / 倫理與宗教（一）</div>
+        <div class="subject-time">2026-04-15 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:15</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Ethics & Religious Studies 2 / 倫理與宗教（二）</div>
+        <div class="subject-time">2026-04-15 11:00</div>
+        <div class="subject-desc">Duration: 11:00 - 12:45</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Chemistry 1 / 化學（一）</div>
+        <div class="subject-time">2026-04-16 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 11:00</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Chemistry 2 / 化學（二）</div>
+        <div class="subject-time">2026-04-16 11:45</div>
+        <div class="subject-desc">Duration: 11:45 - 12:45</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Design & Applied Technology 1 / 設計與應用科技（一）</div>
+        <div class="subject-time">2026-04-17 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:30</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Design & Applied Technology 2 / 設計與應用科技（二）</div>
+        <div class="subject-time">2026-04-17 11:15</div>
+        <div class="subject-desc">Duration: 11:15 - 13:15</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Literature in English 1 / 英語文學（一） (Note 2)</div>
+        <div class="subject-time">2026-04-17 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 11:30 (Note 2)</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Literature in English 2 / 英語文學（二）</div>
+        <div class="subject-time">2026-04-17 13:30</div>
+        <div class="subject-desc">Duration: 13:30 - 15:30</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Health Management & Social Care 1 / 健康管理與社會關懷（一）</div>
+        <div class="subject-time">2026-04-18 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:30</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Health Management & Social Care 2 / 健康管理與社會關懷（二）</div>
+        <div class="subject-time">2026-04-18 11:15</div>
+        <div class="subject-desc">Duration: 11:15 - 13:00</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Biology 1 / 生物（一）</div>
+        <div class="subject-time">2026-04-20 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 11:00</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Biology 2 / 生物（二）</div>
+        <div class="subject-time">2026-04-20 11:45</div>
+        <div class="subject-desc">Duration: 11:45 - 12:45</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Chinese Literature 1 / 中國文學（一）</div>
+        <div class="subject-time">2026-04-21 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:30</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Chinese Literature 2 / 中國文學（二）</div>
+        <div class="subject-time">2026-04-21 11:15</div>
+        <div class="subject-desc">Duration: 11:15 - 13:15</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Technology & Living 1 / 科技與生活（一） (Note 2)</div>
+        <div class="subject-time">2026-04-21 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:00 (Note 2)</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Technology & Living 2 / 科技與生活（二）</div>
+        <div class="subject-time">2026-04-21 10:45</div>
+        <div class="subject-desc">Duration: 10:45 - 12:45</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Physics 1 / 物理（一）</div>
+        <div class="subject-time">2026-04-22 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 11:00</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Physics 2 / 物理（二）</div>
+        <div class="subject-time">2026-04-22 11:45</div>
+        <div class="subject-desc">Duration: 11:45 - 12:45</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Geography 1 / 地理（一）</div>
+        <div class="subject-time">2026-04-23 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 11:15</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Geography 2 / 地理（二）</div>
+        <div class="subject-time">2026-04-23 12:00</div>
+        <div class="subject-desc">Duration: 12:00 - 13:15</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Information & Communication Technology 1 / 資訊及通訊科技（一）</div>
+        <div class="subject-time">2026-04-24 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:30</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Information & Communication Technology 2 / 資訊及通訊科技（二）</div>
+        <div class="subject-time">2026-04-24 11:15</div>
+        <div class="subject-desc">Duration: 11:15 - 12:45</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">History 1 / 歷史（一）</div>
+        <div class="subject-time">2026-04-25 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:30</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">History 2 / 歷史（二）</div>
+        <div class="subject-time">2026-04-25 11:15</div>
+        <div class="subject-desc">Duration: 11:15 - 12:45</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Business, Accounting & Financial Studies 1 / 企業、會計與財務概論（一）</div>
+        <div class="subject-time">2026-04-27 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 09:30</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Business, Accounting & Financial Studies 2 / 企業、會計與財務概論（二）</div>
+        <div class="subject-time">2026-04-27 10:15</div>
+        <div class="subject-desc">Duration: 10:15 - 12:45</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Literature in English 1 / 英語文學（一） (Note 2)</div>
+        <div class="subject-time">2026-04-28 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 11:30 (Note 2)</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Literature in English 2 / 英語文學（二）</div>
+        <div class="subject-time">2026-04-28 13:30</div>
+        <div class="subject-desc">Duration: 13:30 - 15:30</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Technology & Living 1 / 科技與生活（一） (Note 2)</div>
+        <div class="subject-time">2026-04-28 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:00 (Note 2)</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Technology & Living 2 / 科技與生活（二）</div>
+        <div class="subject-time">2026-04-28 10:45</div>
+        <div class="subject-desc">Duration: 10:45 - 12:45</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Physical Education 1 / 體育（一） (Note 2)</div>
+        <div class="subject-time">2026-04-28 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:30 (Note 2)</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Physical Education 2 / 體育（二）</div>
+        <div class="subject-time">2026-04-28 11:15</div>
+        <div class="subject-desc">Duration: 11:15 - 12:45</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Music 1A / 音樂 1A (Note 2)</div>
+        <div class="subject-time">2026-04-28 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:00 (Note 2)</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Music 1B / 音樂 1B</div>
+        <div class="subject-time">2026-04-28 10:45</div>
+        <div class="subject-desc">Duration: 10:45 - 12:15</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Chinese History 1 / 中國歷史（一）</div>
+        <div class="subject-time">2026-04-29 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:45</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Chinese History 2 / 中國歷史（二）</div>
+        <div class="subject-time">2026-04-29 11:30</div>
+        <div class="subject-desc">Duration: 11:30 - 12:50</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Mathematics Extended Part Modules 1,2 / 數學 延伸部分 單元（一）及（二）</div>
+        <div class="subject-time">2026-04-30 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 11:00</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Tourism & Hospitality Studies 1 / 旅遊與款待（一）</div>
+        <div class="subject-time">2026-05-02 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:00</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Tourism & Hospitality Studies 2 / 旅遊與款待（二）</div>
+        <div class="subject-time">2026-05-02 10:45</div>
+        <div class="subject-desc">Duration: 10:45 - 12:30</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Economics 1 / 經濟（一）</div>
+        <div class="subject-time">2026-05-04 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 09:30</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Economics 2 / 經濟（二）</div>
+        <div class="subject-time">2026-05-04 10:15</div>
+        <div class="subject-desc">Duration: 10:15 - 12:45</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Literature in English 1 / 英語文學（一） (Note 2) - repeat</div>
+        <div class="subject-time">2026-05-05 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 11:30 (Note 2)</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Literature in English 2 / 英語文學（二） - repeat</div>
+        <div class="subject-time">2026-05-05 13:30</div>
+        <div class="subject-desc">Duration: 13:30 - 15:30</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Technology & Living 1 / 科技與生活（一） (Note 2) - repeat</div>
+        <div class="subject-time">2026-05-05 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:00 (Note 2)</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Technology & Living 2 / 科技與生活（二） - repeat</div>
+        <div class="subject-time">2026-05-05 10:45</div>
+        <div class="subject-desc">Duration: 10:45 - 12:45</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Physical Education 1 / 體育（一） (Note 2) - repeat</div>
+        <div class="subject-time">2026-05-05 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:30 (Note 2)</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Physical Education 2 / 體育（二） - repeat</div>
+        <div class="subject-time">2026-05-05 11:15</div>
+        <div class="subject-desc">Duration: 11:15 - 12:45</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Music 1A / 音樂 1A (Note 2) - repeat</div>
+        <div class="subject-time">2026-05-05 08:30</div>
+        <div class="subject-desc">Duration: 08:30 - 10:00 (Note 2)</div>
+      </div>
+      <div class="subject-card">
+        <div class="subject-title">Music 1B / 音樂 1B - repeat</div>
+        <div class="subject-time">2026-05-05 10:45</div>
+        <div class="subject-desc">Duration: 10:45 - 12:15</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Reserve / 後備</div>
+        <div class="subject-time">2026-05-06 (Reserve)</div>
+        <div class="subject-desc">Reserve day</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Physical Education – Practical / 體育（實習考試）</div>
+        <div class="subject-time">Late Feb – Late Mar 2026 (08:00 - 19:00)</div>
+        <div class="subject-desc">Practical sessions across Feb–Mar</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">Music – Practical / 音樂（實習考試）</div>
+        <div class="subject-time">Early Mar – Mid Mar 2026 (09:00 - 18:00)</div>
+        <div class="subject-desc">Practical sessions</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">English Language – Speaking / 英國語文（口試）</div>
+        <div class="subject-time">2026-03-10 to 2026-03-19 (17:00 - 20:30) tentative</div>
+        <div class="subject-desc">Speaking tests (Mon–Fri) — tentative</div>
+      </div>
+
+      <div class="subject-card">
+        <div class="subject-title">English Language – Speaking (SEN Sessions) / 英國語文（口試）(特殊需要考生)</div>
+        <div class="subject-time">2026-03-21 09:00 - 17:30 (tentative)</div>
+        <div class="subject-desc">SEN speaking sessions</div>
+      </div>
+    </div>
+
+    <!--<a class="back" href="/past-papers.html">← 返回 Past Papers</a>-->
+  </div>
+
+  <script>
+    (function(){
+      const btn = document.getElementById('moreBtn'); const panel = document.getElementById('sidePanel');
+      if(btn && panel){ btn.addEventListener('click', ()=> panel.classList.toggle('open') ); }
+    })();
+  </script>
+</body>
+</html>

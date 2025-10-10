@@ -1,35 +1,35 @@
-INSERT INTO sheet1 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(a) 於中國語文科、英國語文科及數學科取得 2 級或以上，以及公民與社會發展科取得「達標」 Level 2+ in Chinese Language, English Language and Mathematics, and ‘Attained’ in Citizenship and Social Development', 2, 14261, 14768, 29029, 15246, 15634);
-INSERT INTO sheet1 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(b) 於五科甲類學科中取得 2 級或以上 Level 2+ in five Category A subjects', 2, 15827, 16090, 31917, 17018, 17079);
-INSERT INTO sheet1 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(c) 於五科甲類學科／乙類學科#中取得2 級或以上 Level 2+ in five Category A / B subjects #', 2, 15881, 16200, 32081, 17077, 17195);
-INSERT INTO sheet1 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(d) 於五科甲類學科中取得 2 級或以上，其中包括中國語文科及英國語文科 Level 2+ in five Category A subjects, including Chinese Language and English Language', 2, 14488, 15130, 29618, 15524, 16028);
-INSERT INTO sheet1 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(e) 於五科甲類學科／乙類學科# 中取得2 級或以上，其中包括中國語文科及英國語文科 Level 2+ in five Category A / B subjects #, including Chinese Language and English Language', 2, 14499, 15175, 29674, 15535, 16073);
-INSERT INTO sheet1 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(f) 於五科甲類學科中取得 2 級或以上， 其中包括中國語文科、英國語文科及數學科 Level 2+ in five Category A subjects, including Chinese Language, English Language and Mathematics', 2, 14168, 14604, 28772, 15155, 15465);
-INSERT INTO sheet1 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(g) 於五科甲類學科／乙類學科# 中取得2 級或以上，其中包括中國語文科、英國語文科及數學科 Level 2+ in five Category A / B subjects #, including Chinese Language, English Language and Mathematics', 2, 14175, 14623, 28798, 15162, 15484);
-INSERT INTO sheet2 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('五科取得5** 級或以上', 5, 5, 30, 16, 46, 30);
-INSERT INTO sheet2 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('五科取得5* 級或以上', 5, 5, 241, 234, 475, 245);
-INSERT INTO sheet2 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('五科取得5 級或以上', 5, 5, 857, 899, 1756, 877);
-INSERT INTO sheet2 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('五科取得4 級或以上', 4, 4, 3220, 3495, 6715, 3328);
-INSERT INTO sheet2 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('五科取得3 級或以上', 3, 3, 7756, 8300, 16056, 8109);
-INSERT INTO sheet2 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('五科取得2 級或以上', 2, 2, 15881, 16200, 32081, 17077);
-INSERT INTO sheet2 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('五科取得1 級或以上', 1, 1, 17939, 18112, 36051, 19464);
-INSERT INTO sheet2 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('四科取得1 級或以上', 1, 1, 18834, 18750, 37584, 20502);
-INSERT INTO sheet2 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('三科取得1 級或以上', 1, 1, 19348, 19122, 38470, 21091);
-INSERT INTO sheet2 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('兩科取得1 級或以上', 1, 1, 19672, 19358, 39030, 21467);
-INSERT INTO sheet2 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('一科取得1 級或以上', 1, 1, 19890, 19485, 39375, 21726);
-INSERT INTO sheet3 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(a) 於核心科目中取得「332A」或更佳成績 Core subjects at 332A or better', 332, 8364, 10012, 18376, 8781, 10481);
-INSERT INTO sheet3 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(b) 於核心科目中取得「332A」或更佳成績，並於一個選修科目取得 2 級或以上# 成績 Core subjects at 332A or better, with one elective at level 2+#', 332, 8340, 9976, 18316, 8744, 10438);
-INSERT INTO sheet3 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(c) 於核心科目中取得「332A」或更佳成績，並於兩個選修科目取得 2 級或以上# 成績 Core subjects at 332A or better, with two electives at level 2+#', 332, 8084, 9616, 17700, 8436, 10019);
-INSERT INTO sheet3 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(d) 於核心科目中取得「332A」或更佳成績，並於一個選修科目取得 3 級或以上# 成績 Core subjects at 332A or better, with one elective at level 3+#', 332, 8123, 9489, 17612, 8510, 9912);
-INSERT INTO sheet3 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(e) 於核心科目中取得「332A」或更佳成績，並於兩個選修科目取得 3 級或以上# 成績 Core subjects at 332A or better, with two electives at level 3+#', 332, 7356, 8336, 15692, 7666, 8672);
-INSERT INTO sheet3 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(f) 於核心科目中取得「333A」或更佳成績，並於一個選修科目取得 3 級或以上# 成績 Core subjects at 333A or better, with one elective at level 3+#', 333, 7636, 8511, 16147, 7996, 8894);
-INSERT INTO sheet3 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(g) 於核心科目中取得「333A」或更佳成績，並於兩個選修科目取得 3 級或以上# 成績 Core subjects at 333A or better, with two electives at level 3+#', 333, 7039, 7695, 14734, 7333, 8011);
-INSERT INTO sheet3 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(h) 於核心科目中取得「332A」或更佳成績，並於一個選修科目取得 4 級或以上# 成績 Core subjects at 332A or better, with one elective at level 4+#', 332, 6810, 7497, 14307, 7119, 7821);
-INSERT INTO sheet3 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(i) 於核心科目中取得「332A」或更佳成績，並於兩個選修科目取得 4 級或以上# 成績 Core subjects at 332A or better, with two electives at level 4+#', 332, 5201, 5262, 10463, 5404, 5487);
-INSERT INTO sheet3 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(j) 於核心科目中取得「332A」或更佳成績，並於一個選修科目取得 5 級或以上成績 Core subjects at 332A or better, with one elective at level 5+', 332, 4020, 3616, 7636, 4207, 3772);
-INSERT INTO sheet3 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(k) 於核心科目中取得「332A」或更佳成績，並於兩個選修科目取得 5 級或以上成績 Core subjects at 332A or better, with two electives at level 5+', 332, 2424, 1897, 4321, 2523, 1965);
-INSERT INTO sheet3 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(l) 於核心科目中取得「332A」或更佳成績，數學延伸部分取得 2 級或以上成績，並於一個選修科目取得 2 級或以上# 成績 Core subjects at 332A or better, with Mathematics Extended Part
-at level 2+ and one elective at level 2+#', 2, 3156, 1941, 5097, 3313, 2074);
-INSERT INTO sheet3 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(m) 於核心科目中取得「332A」或更佳成績，數學延伸部分取得 3 級或以上成績，並於一個選修科目取得 2 級或以上# 成績 Core subjects at 332A or better, with Mathematics Extended Part
-at level 3+ and one elective at level 2+#', 3, 2890, 1689, 4579, 3034, 1798);
-INSERT INTO sheet3 (label, day_male, day_female, day_total, all_male, all_female, all_total) VALUES ('(n) 於核心科目中取得「332A」或更佳成績，數學延伸部分取得 3 級或以上成績，並於一個選修科目取得 3 級或以上# 成績 Core subjects at 332A or better, with Mathematics Extended Part
-at level 3+ and one elective at level 3+#', 3, 2878, 1675, 4553, 3021, 1783);
+INSERT INTO sheet1 (label, all_male, all_female, all_total) VALUES ('(a) 於中國語文科、英國語文科及數學科取得 2 級或以上，以及公民與社會發展科取得「達標」 Level 2+ in Chinese Language, English Language and Mathematics, and ‘Attained’ in Citizenship and Social Development', 15634, 15246, 30880);
+INSERT INTO sheet1 (label, all_male, all_female, all_total) VALUES ('(b) 於五科甲類學科中取得 2 級或以上 Level 2+ in five Category A subjects', 17079, 17018, 34097);
+INSERT INTO sheet1 (label, all_male, all_female, all_total) VALUES ('(c) 於五科甲類學科／乙類學科#中取得2 級或以上 Level 2+ in five Category A / B subjects #', 17195, 17077, 34272);
+INSERT INTO sheet1 (label, all_male, all_female, all_total) VALUES ('(d) 於五科甲類學科中取得 2 級或以上，其中包括中國語文科及英國語文科 Level 2+ in five Category A subjects, including Chinese Language and English Language', 16028, 15524, 31552);
+INSERT INTO sheet1 (label, all_male, all_female, all_total) VALUES ('(e) 於五科甲類學科／乙類學科# 中取得2 級或以上，其中包括中國語文科及英國語文科 Level 2+ in five Category A / B subjects #, including Chinese Language and English Language', 16073, 15535, 31608);
+INSERT INTO sheet1 (label, all_male, all_female, all_total) VALUES ('(f) 於五科甲類學科中取得 2 級或以上， 其中包括中國語文科、英國語文科及數學科 Level 2+ in five Category A subjects, including Chinese Language, English Language and Mathematics', 15465, 15155, 30620);
+INSERT INTO sheet1 (label, all_male, all_female, all_total) VALUES ('(g) 於五科甲類學科／乙類學科# 中取得2 級或以上，其中包括中國語文科、英國語文科及數學科 Level 2+ in five Category A / B subjects #, including Chinese Language, English Language and Mathematics', 15484, 15162, 30646);
+INSERT INTO sheet2 (label, all_male, all_female, all_total) VALUES ('五科取得5** 級或以上', 30, 16, 46);
+INSERT INTO sheet2 (label, all_male, all_female, all_total) VALUES ('五科取得5* 級或以上', 245, 234, 479);
+INSERT INTO sheet2 (label, all_male, all_female, all_total) VALUES ('五科取得5 級或以上', 877, 899, 1776);
+INSERT INTO sheet2 (label, all_male, all_female, all_total) VALUES ('五科取得4 級或以上', 3328, 3495, 6823);
+INSERT INTO sheet2 (label, all_male, all_female, all_total) VALUES ('五科取得3 級或以上', 8109, 8300, 16409);
+INSERT INTO sheet2 (label, all_male, all_female, all_total) VALUES ('五科取得2 級或以上', 17077, 16200, 33277);
+INSERT INTO sheet2 (label, all_male, all_female, all_total) VALUES ('五科取得1 級或以上', 19464, 18112, 37576);
+INSERT INTO sheet2 (label, all_male, all_female, all_total) VALUES ('四科取得1 級或以上', 20502, 18750, 39252);
+INSERT INTO sheet2 (label, all_male, all_female, all_total) VALUES ('三科取得1 級或以上', 21091, 19122, 40213);
+INSERT INTO sheet2 (label, all_male, all_female, all_total) VALUES ('兩科取得1 級或以上', 21467, 19358, 40825);
+INSERT INTO sheet2 (label, all_male, all_female, all_total) VALUES ('一科取得1 級或以上', 21726, 19485, 41211);
+INSERT INTO sheet3 (label, all_male, all_female, all_total) VALUES ('(a) 於核心科目中取得「332A」或更佳成績 Core subjects at 332A or better', 10481, 8781, 19262);
+INSERT INTO sheet3 (label, all_male, all_female, all_total) VALUES ('(b) 於核心科目中取得「332A」或更佳成績，並於一個選修科目取得 2 級或以上# 成績 Core subjects at 332A or better, with one elective at level 2+#', 10438, 8744, 19182);
+INSERT INTO sheet3 (label, all_male, all_female, all_total) VALUES ('(c) 於核心科目中取得「332A」或更佳成績，並於兩個選修科目取得 2 級或以上# 成績 Core subjects at 332A or better, with two electives at level 2+#', 10019, 8436, 18455);
+INSERT INTO sheet3 (label, all_male, all_female, all_total) VALUES ('(d) 於核心科目中取得「332A」或更佳成績，並於一個選修科目取得 3 級或以上# 成績 Core subjects at 332A or better, with one elective at level 3+#', 9912, 8510, 18422);
+INSERT INTO sheet3 (label, all_male, all_female, all_total) VALUES ('(e) 於核心科目中取得「332A」或更佳成績，並於兩個選修科目取得 3 級或以上# 成績 Core subjects at 332A or better, with two electives at level 3+#', 8672, 7666, 16338);
+INSERT INTO sheet3 (label, all_male, all_female, all_total) VALUES ('(f) 於核心科目中取得「333A」或更佳成績，並於一個選修科目取得 3 級或以上# 成績 Core subjects at 333A or better, with one elective at level 3+#', 8894, 7996, 16890);
+INSERT INTO sheet3 (label, all_male, all_female, all_total) VALUES ('(g) 於核心科目中取得「333A」或更佳成績，並於兩個選修科目取得 3 級或以上# 成績 Core subjects at 333A or better, with two electives at level 3+#', 8011, 7333, 15344);
+INSERT INTO sheet3 (label, all_male, all_female, all_total) VALUES ('(h) 於核心科目中取得「332A」或更佳成績，並於一個選修科目取得 4 級或以上# 成績 Core subjects at 332A or better, with one elective at level 4+#', 7821, 7119, 14940);
+INSERT INTO sheet3 (label, all_male, all_female, all_total) VALUES ('(i) 於核心科目中取得「332A」或更佳成績，並於兩個選修科目取得 4 級或以上# 成績 Core subjects at 332A or better, with two electives at level 4+#', 5487, 5404, 10891);
+INSERT INTO sheet3 (label, all_male, all_female, all_total) VALUES ('(j) 於核心科目中取得「332A」或更佳成績，並於一個選修科目取得 5 級或以上成績 Core subjects at 332A or better, with one elective at level 5+', 3772, 4207, 7979);
+INSERT INTO sheet3 (label, all_male, all_female, all_total) VALUES ('(k) 於核心科目中取得「332A」或更佳成績，並於兩個選修科目取得 5 級或以上成績 Core subjects at 332A or better, with two electives at level 5+', 1965, 2523, 4488);
+INSERT INTO sheet3 (label, all_male, all_female, all_total) VALUES ('(l) 於核心科目中取得「332A」或更佳成績，數學延伸部分取得 2 級或以上成績，並於一個選修科目取得 2 級或以上# 成績 Core subjects at 332A or better, with Mathematics Extended Part
+at level 2+ and one elective at level 2+#', 2074, 3313, 5387);
+INSERT INTO sheet3 (label, all_male, all_female, all_total) VALUES ('(m) 於核心科目中取得「332A」或更佳成績，數學延伸部分取得 3 級或以上成績，並於一個選修科目取得 2 級或以上# 成績 Core subjects at 332A or better, with Mathematics Extended Part
+at level 3+ and one elective at level 2+#', 1798, 3034, 4832);
+INSERT INTO sheet3 (label, all_male, all_female, all_total) VALUES ('(n) 於核心科目中取得「332A」或更佳成績，數學延伸部分取得 3 級或以上成績，並於一個選修科目取得 3 級或以上# 成績 Core subjects at 332A or better, with Mathematics Extended Part
+at level 3+ and one elective at level 3+#', 1783, 3021, 4804);
